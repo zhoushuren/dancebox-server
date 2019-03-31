@@ -37,6 +37,7 @@ exports.detail = async function (ctx, next) {
 
 exports.create = async function (ctx, next) {
     let {
+        id,
         title,
         remark,
         start_time,
@@ -45,8 +46,31 @@ exports.create = async function (ctx, next) {
         img,
         detail
     } = ctx.request.body
-    Activity.create({
+    try{
+        if(id) {
+            //update
+        }else {
+            await Activity.create({
+                title,
+                remark,
+                start_time,
+                end_time,
+                location,
+                img,
+                detail
+            })
+        }
 
-    })
+        ctx.body =  {
+            success: true,
+
+        }
+    }catch (e) {
+
+    }
+}
+
+exports.delete = async function(ctx,next) {
+
 }
 
