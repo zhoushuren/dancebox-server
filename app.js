@@ -1,0 +1,36 @@
+
+const Koa = require('koa')
+var bodyParser = require('koa-bodyparser')
+// const multer = require('koa-multer')
+
+// require('./config/logger')
+const rouer = require('./routers')
+
+const app = new Koa()
+
+// const upload = multer({ dest: 'uploads/' })
+
+// app.use(rouer.post('/img', upload.single('avatar')))
+
+
+app.use(async(ctx,next)=>{
+    console.log(111)
+    console.log(ctx.path)
+    try{
+        await next()
+    }catch (e){
+        console.error(e)
+        ctx.body = {
+            success: false,
+            error: '服务器错误'
+        }
+    }
+})
+
+app.use(bodyParser())
+
+app.use(rouer.routes()).use(rouer.allowedMethods())
+const port = process.env.PORT || 3007
+const host = process.env.HOST || '0.0.0.0'
+app.listen(port,host)
+// logger.info('user-center server restart')

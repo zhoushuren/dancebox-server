@@ -1,0 +1,32 @@
+{
+  "name": "dancebox-server",
+  "version": "1.0.0",
+  "description": "API 接口",
+  "main": "app.js",
+  "dependencies": {
+    "bluebird": "^3.5.3",
+    "formidable": "^1.2.1",
+    "koa": "^2.7.0",
+    "koa-bodyparser": "^4.2.1",
+    "koa-multer": "^1.0.2",
+    "koa-router": "^7.4.0",
+    "mysql2": "^1.6.5",
+    "sequelize": "^5.2.8"
+  },
+  "devDependencies": {
+    "nodemon": "^1.18.10"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zhoushuren/dancebox-server.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/zhoushuren/dancebox-server/issues"
+  },
+  "homepage": "https://github.com/zhoushuren/dancebox-server#readme"
+}
