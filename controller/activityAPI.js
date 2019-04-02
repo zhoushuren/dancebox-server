@@ -1,8 +1,7 @@
 
 const Activity = require('../model/Activity')
 
-exports.list = async function (ctx, next) {
-
+exports.list = async function(ctx, next) {
     let list = await Activity.findAll({
         where: {
             status: 0
@@ -40,30 +39,36 @@ exports.create = async function (ctx, next) {
         id,
         title,
         remark,
-        start_time,
-        end_time,
+        date,
         location,
         img,
         detail
     } = ctx.request.body
+    console.log(title)
+    console.log(location)
+    console.log(date)
     try{
         if(id) {
             //update
         }else {
-            await Activity.create({
-                title,
-                remark,
-                start_time,
-                end_time,
-                location,
-                img,
-                detail
-            })
+            try {
+                await Activity.create({
+                    title,
+                    remark,
+                    start_time: date[0],
+                    end_time: date[1],
+                    location,
+                    img,
+                    detail,
+                    status: 0
+                })
+            }catch (e) {
+                console.error(e)
+            }
         }
 
         ctx.body =  {
             success: true,
-
         }
     }catch (e) {
 

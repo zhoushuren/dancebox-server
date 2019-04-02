@@ -6,10 +6,10 @@ const user = sequelize.define('activity', {
         type: Sequelize.STRING
     },
     start_time: {
-        type: Sequelize.STRING
+        type: Sequelize.DATE
     },
     end_time: {
-        type: Sequelize.STRING
+        type: Sequelize.DATE
     },
     remark: {
         type: Sequelize.STRING
