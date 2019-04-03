@@ -5,13 +5,18 @@
   "main": "app.js",
   "dependencies": {
     "bluebird": "^3.5.3",
+    "cookie-parse": "^0.4.0",
     "formidable": "^1.2.1",
     "koa": "^2.7.0",
     "koa-bodyparser": "^4.2.1",
     "koa-multer": "^1.0.2",
     "koa-router": "^7.4.0",
+    "koa-send": "^5.0.0",
+    "moment": "^2.24.0",
     "mysql2": "^1.6.5",
-    "sequelize": "^5.2.8"
+    "randomstring": "^1.1.5",
+    "sequelize": "^5.2.8",
+    "sha256": "^0.2.0"
   },
   "devDependencies": {
     "nodemon": "^1.18.10"

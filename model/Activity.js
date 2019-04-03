@@ -20,14 +20,11 @@ const user = sequelize.define('activity', {
     img: {
         type: Sequelize.STRING
     },
-    game_detail: {
-        type: Sequelize.STRING
-    },
-    teach_detail: {
-        type: Sequelize.STRING
-    },
     status: {
         type: Sequelize.INTEGER
+    },
+    city: {
+        type: Sequelize.STRING
     }
     },
     {

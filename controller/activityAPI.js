@@ -1,16 +1,36 @@
 
 const Activity = require('../model/Activity')
+const moment = require('moment')
+function filterTime () {
 
+}
+
+function parseRemark(remark) {
+    try{
+        let arr = JSON.parse(remark)
+        let result = ''
+        arr.forEach(val => {
+            result += '#' +val + " "
+        })
+        return result
+    }catch (e) {
+
+    }
+
+}
 exports.list = async function(ctx, next) {
     let list = await Activity.findAll({
-        where: {
-            status: 0
-        }
+        where: {}
     })
 
     ctx.body = {
         success: true,
-        list
+        list: list.map(val => {
+            val.dataValues.start_time = moment( val.dataValues.start_time).format('YYYY/MM/DD')
+            val.dataValues.end_time  =  moment( val.dataValues.start_time).format('YYYY/MM/DD')
+            val.dataValues.remark = parseRemark(val.dataValues.remark)
+            return val
+        })
     }
 }
 
@@ -42,11 +62,8 @@ exports.create = async function (ctx, next) {
         date,
         location,
         img,
-        detail
+        city
     } = ctx.request.body
-    console.log(title)
-    console.log(location)
-    console.log(date)
     try{
         if(id) {
             //update
@@ -54,12 +71,12 @@ exports.create = async function (ctx, next) {
             try {
                 await Activity.create({
                     title,
-                    remark,
+                    remark: JSON.stringify(remark),
                     start_time: date[0],
                     end_time: date[1],
                     location,
                     img,
-                    detail,
+                    city,
                     status: 0
                 })
             }catch (e) {
@@ -75,7 +92,28 @@ exports.create = async function (ctx, next) {
     }
 }
 
-exports.delete = async function(ctx,next) {
+exports.setStatus = async function(ctx,next) {
+    let { id, status} = ctx.request.body
+    console.log(1112222)
+    console.log(id, status)
+    if(id === undefined || status === undefined || status !==1 || status !== 0) {
+        ctx.body = {
+            success: false,
+            message: '非法请求'
+        }
+    }
+    let activity  = await Activity.findByPk(id)
+    console.log(activity)
+    if(activity) {
+        await activity.update({status})
+    }
 
+    ctx.body = {
+        success: true
+    }
 }
 
+
+exports.createGame = async function (ctx) {
+
+}

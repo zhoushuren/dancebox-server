@@ -14,8 +14,8 @@ const app = new Koa()
 
 
 app.use(async(ctx,next)=>{
-    console.log(111)
-    console.log(ctx.path)
+    // console.log(111)
+    // console.log(ctx.path)
     try{
         await next()
     }catch (e){
