@@ -1,9 +1,11 @@
 
 const Activity = require('../model/Activity')
+const ActivityGame = require('../model/ActivityGame')
 const moment = require('moment')
 function filterTime () {
 
 }
+const activityImgURL  = process.env.IMGURL || 'http://192.168.1.2:3007/api/img/'
 
 function parseRemark(remark) {
     try{
@@ -18,20 +20,40 @@ function parseRemark(remark) {
     }
 
 }
-exports.list = async function(ctx, next) {
+
+async function getList(where) {
     let list = await Activity.findAll({
-        where: {}
+        where
     })
 
-    ctx.body = {
+    return {
         success: true,
         list: list.map(val => {
-            val.dataValues.start_time = moment( val.dataValues.start_time).format('YYYY/MM/DD')
-            val.dataValues.end_time  =  moment( val.dataValues.start_time).format('YYYY/MM/DD')
-            val.dataValues.remark = parseRemark(val.dataValues.remark)
-            return val
+            return {
+                start_time:  moment( val.dataValues.start_time).format('YYYY/MM/DD'),
+                end_time: moment( val.dataValues.start_time).format('YYYY/MM/DD'),
+                remark: parseRemark(val.dataValues.remark),
+                img:  activityImgURL + val.dataValues.img,
+                title: val.dataValues.title,
+                location: val.dataValues.location,
+                city: val.dataValues.city,
+                id: val.dataValues.id,
+                status: val.dataValues.status
+            }
         })
     }
+}
+//管理后台
+exports.list = async function(ctx, next) {
+    // let {status} = ctx.query
+    let result = await getList()
+    ctx.body = result
+}
+//小程序
+exports.activity_list = async function(ctx, next) {
+    let {page} = ctx.query
+    let result = await getList({status: 0})
+    ctx.body = result
 }
 
 exports.detail = async function (ctx, next) {
@@ -40,17 +62,33 @@ exports.detail = async function (ctx, next) {
         ctx.status = 404
         return
     }
+    try{
+        let detail = await Activity.findOne({
+            where: {
+                status: 0,
+                id: id
+            }
+        })
 
-    let detail = await Activity.findOne({
-        where: {
-            status: 0,
-            id: id
+        ctx.body = {
+            success: true,
+            activity: {
+                start_time:  moment( detail.dataValues.start_time).format('YYYY/MM/DD'),
+                end_time: moment( detail.dataValues.start_time).format('YYYY/MM/DD'),
+                remark: parseRemark(detail.dataValues.remark),
+                img:  activityImgURL + detail.dataValues.img,
+                title: detail.dataValues.title,
+                location: detail.dataValues.location,
+                city: detail.dataValues.city,
+                id: detail.dataValues.id
+            },
+
         }
-    })
-
-    ctx.body = {
-        success: true
+    }catch (e) {
+        console.error(e)
     }
+
+
 }
 
 
@@ -94,8 +132,6 @@ exports.create = async function (ctx, next) {
 
 exports.setStatus = async function(ctx,next) {
     let { id, status} = ctx.request.body
-    console.log(1112222)
-    console.log(id, status)
     if(id === undefined || status === undefined || status !==1 || status !== 0) {
         ctx.body = {
             success: false,
@@ -115,5 +151,30 @@ exports.setStatus = async function(ctx,next) {
 
 
 exports.createGame = async function (ctx) {
+    const {
+        activity_id,
+        project,
+        organizer,
+        sponsor,
+        guest,
+        desc
+    } = ctx.request.body
 
+    try{
+
+        await ActivityGame.create({
+            activity_id,
+            project: JSON.stringify(project),
+            organizer: JSON.stringify(organizer),
+            sponsor: JSON.stringify(sponsor),
+            guest: JSON.stringify(guest),
+            desc: JSON.stringify(desc)
+        })
+
+        ctx.body = {
+            success: true
+        }
+    } catch (e) {
+        console.error(e)
+    }
 }
