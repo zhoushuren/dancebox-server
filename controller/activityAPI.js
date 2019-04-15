@@ -1,6 +1,7 @@
 
 const Activity = require('../model/Activity')
 const ActivityGame = require('../model/ActivityGame')
+const ActivityTeach = require('../model/ActivityTeach')
 const moment = require('moment')
 function filterTime () {
 
@@ -63,12 +64,86 @@ exports.detail = async function (ctx, next) {
         return
     }
     try{
-        let detail = await Activity.findOne({
-            where: {
-                status: 0,
-                id: id
+        let [ detail, gameObj,teach ] = await Promise.all([
+            Activity.findOne({
+                where: {
+                    status: 0,
+                    id: id
+                }
+            }),
+            ActivityGame.findOne({where: {activity_id: id}}),
+            ActivityTeach.findOne({where: {activity_id: id}})
+        ])
+        let game = {}
+        if(gameObj) {
+            if(typeof gameObj.dataValues.project === 'string') {
+                try{
+                    game.project = JSON.parse(gameObj.dataValues.project)
+                }catch (e) {
+                    game.project = []
+                }
             }
-        })
+            if(typeof gameObj.dataValues.organizer === 'string') {
+                try{
+                    game.organizer = JSON.parse(gameObj.dataValues.organizer)
+                    game.organizer =  game.organizer.map(val => {
+                        return {
+                            id: val.id,
+                            name: val.name,
+                            type: val.type,
+                            img: activityImgURL+ val.img
+                        }
+                    })
+                }catch (e) {
+                    game.organizer = []
+                }
+            }
+            if(typeof gameObj.dataValues.sponsor === 'string') {
+                try{
+                    game.sponsor = JSON.parse(gameObj.dataValues.sponsor)
+
+                    game.sponsor =  game.sponsor.map(val => {
+                        return {
+                            id: val.id,
+                            name: val.name,
+                            type: val.type,
+                            img: activityImgURL+ val.img
+                        }
+                    })
+                }catch (e) {
+                    game.sponsor = []
+                }
+            }
+            if(typeof gameObj.dataValues.guest === 'string') {
+                try{
+                    game.guest = JSON.parse(gameObj.dataValues.guest)
+                    game.guest =  game.guest.map(val => {
+                        return {
+                            id: val.id,
+                            name: val.name,
+                            type: val.type,
+                            img: activityImgURL+ val.img
+                        }
+                    })
+                }catch (e) {
+                    game.guest = []
+                }
+            }
+            game.desc = gameObj.dataValues.desc
+            game.activity_id = gameObj.dataValues.activity_id
+        }
+        let _teach = {}
+        if(teach) {
+            try{
+                let teacher = JSON.parse(teach.dataValues.teacher)
+                _teach.teacher = teacher
+                _teach.desc = teach.dataValues.desc
+                _teach.time = teach.dataValues.time
+                _teach.location = teach.dataValues.location
+            }catch (e) {
+                console.error(e)
+            }
+        }
 
         ctx.body = {
             success: true,
@@ -82,7 +157,8 @@ exports.detail = async function (ctx, next) {
                 city: detail.dataValues.city,
                 id: detail.dataValues.id
             },
-
+            game,
+            teach_info: _teach
         }
     }catch (e) {
         console.error(e)
@@ -161,8 +237,7 @@ exports.createGame = async function (ctx) {
     } = ctx.request.body
 
     try{
-
-        await ActivityGame.create({
+        await ActivityGame.upsert({
             activity_id,
             project: JSON.stringify(project),
             organizer: JSON.stringify(organizer),
@@ -170,7 +245,6 @@ exports.createGame = async function (ctx) {
             guest: JSON.stringify(guest),
             desc: JSON.stringify(desc)
         })
-
         ctx.body = {
             success: true
         }

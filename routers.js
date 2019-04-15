@@ -49,7 +49,7 @@ router.get('/admin/activitys', activityAPI.list)
 
 router.get('/admin/activity', activityAPI.detail)
 
-router.get('/admin/game', activityAPI.createGame)
+router.post('/admin/game', activityAPI.createGame)
 
 router.post('/admin/activity', authenticated(activityAPI.create))
 
