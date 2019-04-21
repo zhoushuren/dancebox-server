@@ -4,7 +4,7 @@ var bodyParser = require('koa-bodyparser')
 // const multer = require('koa-multer')
 
 // require('./config/logger')
-const rouer = require('./routers')
+const {  staticRouter, router} = require('./routers')
 
 const app = new Koa()
 
@@ -14,8 +14,7 @@ const app = new Koa()
 
 
 app.use(async(ctx,next)=>{
-    // console.log(111)
-    // console.log(ctx.path)
+
     try{
         await next()
     }catch (e){
@@ -29,7 +28,10 @@ app.use(async(ctx,next)=>{
 
 app.use(bodyParser())
 
-app.use(rouer.routes()).use(rouer.allowedMethods())
+app.use(router.routes()).use(router.allowedMethods())
+
+app.use(staticRouter.routes()).use(staticRouter.allowedMethods())
+
 const port = process.env.PORT || 3007
 const host = process.env.HOST || '0.0.0.0'
 app.listen(port,host)

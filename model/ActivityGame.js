@@ -1,7 +1,7 @@
 const sequelize = require('../config')
 const Sequelize = require('sequelize')
 
-const user = sequelize.define('activity_game', {
+const activity_game = sequelize.define('activity_game', {
         activity_id: {
             type: Sequelize.INTEGER
         },
@@ -28,4 +28,4 @@ const user = sequelize.define('activity_game', {
         getterMethods: {}
     })
 
-module.exports = user
+module.exports = activity_game

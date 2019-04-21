@@ -6,12 +6,11 @@ const path = require('path')
 const randomstring = require('randomstring')
 const send = require('koa-send');
 
-
+const filePath = '/static/img/'
 exports.img = async function(ctx, next) {
     let obj = await formParse(ctx.req)
-    console.log(obj)
+    // console.log(obj)
     ctx.status = 201
-
     ctx.body = {
         success: true,
         ...obj
@@ -35,7 +34,7 @@ function formParse(req) {
                     if(err) throw err;
                     resolve({
                         msg: '图片上传并改名成功',
-                        file_name: fileName
+                        file_name: filePath + fileName
                     })
                 })
 

@@ -34,10 +34,10 @@ exports.login = async function (ctx) {
 
 
     try{
-        console.log('------')
-        console.log(session_token)
-        console.log(user.dataValues)
-        console.log('------')
+        // console.log('------')
+        // console.log(session_token)
+        // console.log(user.dataValues)
+        // console.log('------')
         await AdminSession.upsert({
             session_token,
             admin_user_id: user.dataValues.id

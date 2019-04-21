@@ -2,16 +2,12 @@
 const Personal = require('../model/Personal')
 exports.addPersonal = async function(ctx, next) {
     let { name, type, img } = ctx.request.body
-    console.log('-----')
-    console.log(name)
-    console.log(type)
-    console.log(img)
-    console.log('-----')
+
     try{
         await Personal.create({
             name,
             type,
-            img
+            img: img
         })
         ctx.body = {
             success: true

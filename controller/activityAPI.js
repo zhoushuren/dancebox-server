@@ -6,7 +6,7 @@ const moment = require('moment')
 function filterTime () {
 
 }
-const activityImgURL  = process.env.IMGURL || 'http://192.168.1.2:3007/api/img/'
+const activityImgURL  = process.env.IMGURL || 'http://127.0.0.1:3007'
 
 function parseRemark(remark) {
     try{
@@ -35,6 +35,7 @@ async function getList(where) {
                 end_time: moment( val.dataValues.start_time).format('YYYY/MM/DD'),
                 remark: parseRemark(val.dataValues.remark),
                 img:  activityImgURL + val.dataValues.img,
+                banner_img:  activityImgURL + val.dataValues.banner_img,
                 title: val.dataValues.title,
                 location: val.dataValues.location,
                 city: val.dataValues.city,
@@ -152,6 +153,7 @@ exports.detail = async function (ctx, next) {
                 end_time: moment( detail.dataValues.start_time).format('YYYY/MM/DD'),
                 remark: parseRemark(detail.dataValues.remark),
                 img:  activityImgURL + detail.dataValues.img,
+                banner_img:  activityImgURL + detail.dataValues.banner_img,
                 title: detail.dataValues.title,
                 location: detail.dataValues.location,
                 city: detail.dataValues.city,
@@ -163,8 +165,6 @@ exports.detail = async function (ctx, next) {
     }catch (e) {
         console.error(e)
     }
-
-
 }
 
 
@@ -176,7 +176,8 @@ exports.create = async function (ctx, next) {
         date,
         location,
         img,
-        city
+        city,
+        banner_img
     } = ctx.request.body
     try{
         if(id) {
@@ -190,6 +191,7 @@ exports.create = async function (ctx, next) {
                     end_time: date[1],
                     location,
                     img,
+                    banner_img,
                     city,
                     status: 0
                 })
@@ -208,14 +210,14 @@ exports.create = async function (ctx, next) {
 
 exports.setStatus = async function(ctx,next) {
     let { id, status} = ctx.request.body
-    if(id === undefined || status === undefined || status !==1 || status !== 0) {
+    if(id === undefined || status === undefined || status !==1 || status !== 0 || status !== 2) {
         ctx.body = {
             success: false,
             message: '非法请求'
         }
     }
     let activity  = await Activity.findByPk(id)
-    console.log(activity)
+    // console.log(activity)
     if(activity) {
         await activity.update({status})
     }
@@ -227,7 +229,7 @@ exports.setStatus = async function(ctx,next) {
 
 
 exports.createGame = async function (ctx) {
-    const {
+    let {
         activity_id,
         project,
         organizer,
@@ -237,18 +239,42 @@ exports.createGame = async function (ctx) {
     } = ctx.request.body
 
     try{
+        if(typeof project === 'object') {
+            project = JSON.stringify(project)
+        }
+        if(typeof organizer === 'object') {
+            organizer = JSON.stringify(organizer)
+        }
+        if(typeof sponsor === 'object') {
+            sponsor = JSON.stringify(sponsor)
+        }
+        if(typeof guest === 'object') {
+            guest = JSON.stringify(guest)
+        }
+        // if(typeof desc === 'object') {
+        //     desc = JSON.stringify(desc)
+        // }
         await ActivityGame.upsert({
             activity_id,
-            project: JSON.stringify(project),
-            organizer: JSON.stringify(organizer),
-            sponsor: JSON.stringify(sponsor),
-            guest: JSON.stringify(guest),
-            desc: JSON.stringify(desc)
+            project,
+            organizer,
+            sponsor,
+            guest,
+            desc
         })
         ctx.body = {
             success: true
         }
     } catch (e) {
         console.error(e)
+    }
+}
+
+exports.getCity =async function(ctx, next) {
+    let res = await Activity.findAll({where: {status: 0}, attributes:['city'], group: [['city']]})
+    console.log(res)
+    ctx.body = {
+        success: true,
+        data: res
     }
 }

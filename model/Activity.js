@@ -1,7 +1,7 @@
 const sequelize = require('../config')
 const Sequelize = require('sequelize')
 
-const user = sequelize.define('activity', {
+const activity = sequelize.define('activity', {
     title: {
         type: Sequelize.STRING
     },
@@ -18,7 +18,10 @@ const user = sequelize.define('activity', {
         type: Sequelize.STRING
     },
     img: {
-        type: Sequelize.STRING
+      type: Sequelize.STRING
+    },
+    banner_img: {
+      type: Sequelize.STRING
     },
     status: {
         type: Sequelize.INTEGER
@@ -34,4 +37,4 @@ const user = sequelize.define('activity', {
         getterMethods: {}
     })
 
-module.exports = user
+module.exports = activity
