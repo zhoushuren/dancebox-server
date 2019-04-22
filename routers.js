@@ -13,7 +13,7 @@ const router = new Router({
 })
 
 const staticRouter = new Router({
-  prefix: '/static'
+  prefix: '/activity_img'
 })
 
 function wrap(cb) {

@@ -6,7 +6,7 @@ const path = require('path')
 const randomstring = require('randomstring')
 const send = require('koa-send');
 
-const filePath = '/static/img/'
+const filePath = '/activity_img/img/'
 exports.img = async function(ctx, next) {
     let obj = await formParse(ctx.req)
     // console.log(obj)
