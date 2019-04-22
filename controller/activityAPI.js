@@ -51,14 +51,35 @@ exports.list = async function(ctx, next) {
     let result = await getList()
     ctx.body = result
 }
+
 //小程序
 exports.activity_list = async function(ctx, next) {
     let {page} = ctx.query
     let result = await getList({status: 0})
     ctx.body = result
+    // select(function (results) {
+    //     console.log(results)
+    //     ctx.body = results
+    // })
 }
 
-exports.detail = async function (ctx, next) {
+const EventProxy = require('eventproxy')
+const proxy = new EventProxy();
+let status = 'ready';
+
+const select = function (callback) {
+    proxy.once('selected', callback);//将该实例的该操作放入队列，并且操作只执行一次
+    if (status === 'ready') {
+        status = 'pending';
+        return getList({status: 0}).then(results => {
+            proxy.emit('selected', results);
+            status = 'ready';
+        })
+    }
+}
+
+exports.detail = async function (is_admin, ctx, next) {
+    console.log(is_admin)
     let {id}  = ctx.query
     if(!id) {
         ctx.status = 404
@@ -88,11 +109,15 @@ exports.detail = async function (ctx, next) {
                 try{
                     game.organizer = JSON.parse(gameObj.dataValues.organizer)
                     game.organizer =  game.organizer.map(val => {
+                        let img = val.img
+                        if(is_admin !== 'admin') {
+                            img = activityImgURL+ val.img
+                        }
                         return {
                             id: val.id,
                             name: val.name,
                             type: val.type,
-                            img: activityImgURL+ val.img
+                            img: img
                         }
                     })
                 }catch (e) {
@@ -104,11 +129,15 @@ exports.detail = async function (ctx, next) {
                     game.sponsor = JSON.parse(gameObj.dataValues.sponsor)
 
                     game.sponsor =  game.sponsor.map(val => {
+                        let img = val.img
+                        if(is_admin !== 'admin') {
+                            img = activityImgURL+ val.img
+                        }
                         return {
                             id: val.id,
                             name: val.name,
                             type: val.type,
-                            img: activityImgURL+ val.img
+                            img: img
                         }
                     })
                 }catch (e) {
@@ -119,11 +148,15 @@ exports.detail = async function (ctx, next) {
                 try{
                     game.guest = JSON.parse(gameObj.dataValues.guest)
                     game.guest =  game.guest.map(val => {
+                        let img = val.img
+                        if(is_admin !== 'admin') {
+                            img = activityImgURL+ val.img
+                        }
                         return {
                             id: val.id,
                             name: val.name,
                             type: val.type,
-                            img: activityImgURL+ val.img
+                            img: img
                         }
                     })
                 }catch (e) {
@@ -267,6 +300,31 @@ exports.createGame = async function (ctx) {
         }
     } catch (e) {
         console.error(e)
+    }
+}
+
+exports.createTeach = async function(ctx, next) {
+    let {
+        activity_id,
+        desc,
+        location,
+        time,
+        teacher
+    } = ctx.request.body
+
+    if(typeof teacher === 'object') {
+        teacher = JSON.stringify(teacher)
+    }
+    await ActivityTeach.create({
+        activity_id,
+        desc,
+        location,
+        time,
+        teacher
+    })
+
+    ctx.body = {
+        success: true
     }
 }
 

@@ -9,7 +9,6 @@ const send = require('koa-send');
 const filePath = '/activity_img/img/'
 exports.img = async function(ctx, next) {
     let obj = await formParse(ctx.req)
-    // console.log(obj)
     ctx.status = 201
     ctx.body = {
         success: true,
