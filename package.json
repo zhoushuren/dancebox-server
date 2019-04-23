@@ -6,6 +6,7 @@
   "dependencies": {
     "bluebird": "^3.5.3",
     "cookie-parse": "^0.4.0",
+    "eventproxy": "^1.0.0",
     "formidable": "^1.2.1",
     "koa": "^2.7.0",
     "koa-bodyparser": "^4.2.1",

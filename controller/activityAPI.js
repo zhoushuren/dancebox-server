@@ -51,12 +51,31 @@ exports.list = async function(ctx, next) {
     let result = await getList()
     ctx.body = result
 }
+
+//解决数据库雪崩
+class ActivityService {
+  getActivityList() {
+    if (this.requesting === undefined) {
+      let self = this;
+      this.requesting =  getList({status: 0}).finally(()=>{
+        delete self.requesting;
+      })
+    }
+    return this.requesting;
+  }
+}
+
+let svs = new ActivityService()
 //小程序
 exports.activity_list = async function(ctx, next) {
     let {page} = ctx.query
-    let result = await getList({status: 0})
+    // let result = await getList({status: 0})
+    // ctx.body = result
+    let result = await svs.getActivityList()
     ctx.body = result
 }
+
+
 
 exports.detail = async function (ctx, next) {
     let {id}  = ctx.query
