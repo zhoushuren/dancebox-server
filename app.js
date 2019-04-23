@@ -1,9 +1,7 @@
 
 const Koa = require('koa')
-var bodyParser = require('koa-bodyparser')
-// const multer = require('koa-multer')
+const bodyParser = require('koa-bodyparser')
 
-// require('./config/logger')
 const {  staticRouter, router} = require('./routers')
 
 const app = new Koa()
