@@ -76,8 +76,8 @@ exports.activity_list = async function(ctx, next) {
 }
 
 
-
-exports.detail = async function (ctx, next) {
+exports.detail = async function (is_admin, ctx, next) {
+    console.log(is_admin)
     let {id}  = ctx.query
     if(!id) {
         ctx.status = 404
@@ -107,11 +107,15 @@ exports.detail = async function (ctx, next) {
                 try{
                     game.organizer = JSON.parse(gameObj.dataValues.organizer)
                     game.organizer =  game.organizer.map(val => {
+                        let img = val.img
+                        if(is_admin !== 'admin') {
+                            img = activityImgURL+ val.img
+                        }
                         return {
                             id: val.id,
                             name: val.name,
                             type: val.type,
-                            img: activityImgURL+ val.img
+                            img: img
                         }
                     })
                 }catch (e) {
@@ -123,11 +127,15 @@ exports.detail = async function (ctx, next) {
                     game.sponsor = JSON.parse(gameObj.dataValues.sponsor)
 
                     game.sponsor =  game.sponsor.map(val => {
+                        let img = val.img
+                        if(is_admin !== 'admin') {
+                            img = activityImgURL+ val.img
+                        }
                         return {
                             id: val.id,
                             name: val.name,
                             type: val.type,
-                            img: activityImgURL+ val.img
+                            img: img
                         }
                     })
                 }catch (e) {
@@ -138,11 +146,15 @@ exports.detail = async function (ctx, next) {
                 try{
                     game.guest = JSON.parse(gameObj.dataValues.guest)
                     game.guest =  game.guest.map(val => {
+                        let img = val.img
+                        if(is_admin !== 'admin') {
+                            img = activityImgURL+ val.img
+                        }
                         return {
                             id: val.id,
                             name: val.name,
                             type: val.type,
-                            img: activityImgURL+ val.img
+                            img: img
                         }
                     })
                 }catch (e) {
@@ -286,6 +298,31 @@ exports.createGame = async function (ctx) {
         }
     } catch (e) {
         console.error(e)
+    }
+}
+
+exports.createTeach = async function(ctx, next) {
+    let {
+        activity_id,
+        desc,
+        location,
+        time,
+        teacher
+    } = ctx.request.body
+
+    if(typeof teacher === 'object') {
+        teacher = JSON.stringify(teacher)
+    }
+    await ActivityTeach.create({
+        activity_id,
+        desc,
+        location,
+        time,
+        teacher
+    })
+
+    ctx.body = {
+        success: true
     }
 }
 

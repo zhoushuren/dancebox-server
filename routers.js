@@ -52,9 +52,11 @@ router.post('/add_admin', admin.createAdmin)
 
 router.get('/admin/activitys', activityAPI.list)
 
-router.get('/admin/activity', activityAPI.detail)
+router.get('/admin/activity', activityAPI.detail.bind(null,'admin'))
 
 router.post('/admin/game', activityAPI.createGame)
+
+router.post('/admin/teach', activityAPI.createTeach)
 
 router.post('/admin/activity', authenticated(activityAPI.create))
 
@@ -73,7 +75,7 @@ staticRouter.get('/img/:name', file.getImg)
 
 
 //小程序接口
-router.get('/activity/detail', activityAPI.detail)
+router.get('/activity/detail', activityAPI.detail.bind(null,'no_admin'))
 
 router.get('/activitys/', activityAPI.activity_list)
 
