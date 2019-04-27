@@ -25,7 +25,7 @@ const community_comment = sequelize.define('community_comment', {
     }
   },
   {
-    tableName: 'user',
+    tableName: 'community_comment',
     createdAt: 'created_at',
     updatedAt: false,
     getterMethods: {}

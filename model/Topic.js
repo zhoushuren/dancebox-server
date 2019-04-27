@@ -13,7 +13,7 @@ const topic = sequelize.define('community_topic', {
     }
   },
   {
-    tableName: 'user',
+    tableName: 'community_topic',
     createdAt: 'created_at',
     updatedAt: false,
     getterMethods: {}

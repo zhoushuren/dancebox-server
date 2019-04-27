@@ -1,7 +1,7 @@
 const sequelize = require('../config')
 const Sequelize = require('sequelize')
 
-const community_comment = sequelize.define('community_comment', {
+const community_comment = sequelize.define('community_message', {
     _id: {
       type: Sequelize.NUMBER
     },
@@ -16,7 +16,7 @@ const community_comment = sequelize.define('community_comment', {
     }
   },
   {
-    tableName: 'user',
+    tableName: 'community_message',
     createdAt: 'created_at',
     updatedAt: false,
     getterMethods: {}
