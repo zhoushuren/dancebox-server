@@ -5,6 +5,7 @@ const admin = require('./controller/admin')
 const file = require('./controller/file')
 const personal = require('./controller/personal')
 const user = require('./controller/user')
+const community = require('./controller/community')
 
 const authenticated = require('./middleware/authenticated')
 
@@ -87,9 +88,23 @@ router.get('/activity/list', activityAPI.list)
 
 
 
-//社区后台接口
+//社区接口
+router.post('/community/topic',community.addTopic)
+router.delete('/community/topic',community.deleteTopic)
+router.get('/community/topic',community.getTopic)
 
-router.post('/admin/topic',)
+router.get('/community/post',community.addPost)
+router.delete('/community/post',community.deletePost)
+router.get('/community/post',community.getPost)
+
+router.post('/community/comment',community.addComment)
+router.delete('/community/comment',community.deleteComment)
+router.get('/community/comment',community.getComment)
+
+router.post('/community/up',community.up)
+
+router.get('/community/message',community.getMessage)
+
 module.exports = {
   staticRouter,
   router
