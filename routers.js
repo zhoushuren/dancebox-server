@@ -93,7 +93,7 @@ router.post('/community/topic',community.addTopic)
 router.delete('/community/topic',community.deleteTopic)
 router.get('/community/topic',community.getTopic)
 
-router.get('/community/post',community.addPost)
+router.post('/community/post',community.addPost)
 router.delete('/community/post',community.deletePost)
 router.get('/community/post',community.getPost)
 
