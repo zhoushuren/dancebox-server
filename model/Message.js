@@ -6,13 +6,22 @@ const community_comment = sequelize.define('community_message', {
       type: Sequelize.NUMBER
     },
     type: {
-      type: Sequelize.NUMBER
+      type: Sequelize.STRING
     },
     action: {
       type: Sequelize.STRING
     },
-    user_id: {
+    from_user_id: {
       type: Sequelize.NUMBER
+    },
+    to_user_id: {
+      type: Sequelize.NUMBER
+    },
+    from_user_name: {
+      type: Sequelize.STRING
+    },
+    to_user_name: {
+      type: Sequelize.STRING
     }
   },
   {

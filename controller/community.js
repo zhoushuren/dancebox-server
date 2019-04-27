@@ -48,7 +48,8 @@ exports.addPost = async function(ctx, next) {
   let {topic_id,title,content} = ctx.request.body
 
   let res = await Topic.findByPk(topic_id)
-  if(!res && res.dataValues.status >0 ) {
+  console.log(res)
+  if(!res && res.status >0 ) {
     return
   }
 
@@ -57,7 +58,7 @@ exports.addPost = async function(ctx, next) {
     title,
     content,
     user_id,
-    topic_name: res.dataValues.name
+    topic_name: res.name
   })
 
   ctx.body = {
@@ -89,7 +90,9 @@ exports.getPost = async function (ctx, next) {
 exports.addComment = async function(ctx, next) {
   let {content,post_id,parent_id} = ctx.request.body
   let user_id = 0
-
+  if(!parent_id) {
+    parent_id = 0
+  }
   await Comment.create({
     post_id,
     parent_id,
@@ -132,22 +135,44 @@ exports.getComment = async function(ctx, next) {
     list: res
   }
 }
+
 exports.up = async function(ctx, next) {
-  let {post_id} = ctx.query
-  let res = await Post.findByPk(post_id)
-  if(!res) {
-    return
-  }
-
+  let {id,type} = ctx.request.body
   let user_id = 0
-
-  await res.update({up: 1})
-
-  await Message.create({
-    post_id,
-    to_user_id: res.dataValues.user_id,
-    from_user_id: user_id
-  })
+  if(type === 'post') {
+    let res = await Post.findByPk(id)
+    if(!res) {
+      return
+    }
+    await res.update({up: 1})
+    console.log(res.dataValues.user_id)
+    // return
+    await Message.create({
+      _id: id,
+      type,
+      action: 'up',
+      to_user_id: res.dataValues.user_id,
+      to_user_name: res.dataValues.user_name,
+      from_user_id: user_id,
+      from_user_name: user_id //TODO: 暂时这样写
+    })
+  }
+  if(type === 'comment') {
+    let res = await Comment.findByPk(id)
+    if(!res) {
+      return
+    }
+    await res.update({up: 1})
+    await Message.create({
+      _id: id,
+      type,
+      action: 'up',
+      to_user_id: res.dataValues.user_id,
+      to_user_name: res.dataValues.user_name,
+      from_user_id: user_id,
+      from_user_name: user_id //TODO: 暂时这样写
+    })
+  }
   ctx.body = {
     success: true
   }
