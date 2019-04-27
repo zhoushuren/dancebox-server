@@ -66,7 +66,7 @@ router.post('/admin/personal', authenticated(personal.addPersonal))
 
 router.get('/admin/personal', authenticated(personal.personalList))
 
-router.get('/activity/list', activityAPI.list)
+
 
 //静态资源
 staticRouter.post('/img', file.img)
@@ -83,6 +83,13 @@ router.get('/get_city', activityAPI.getCity)
 
 router.post('/login', user.login)
 
+router.get('/activity/list', activityAPI.list)
+
+
+
+//社区后台接口
+
+router.post('/admin/topic',)
 module.exports = {
   staticRouter,
   router

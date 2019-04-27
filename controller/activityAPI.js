@@ -328,7 +328,6 @@ exports.createTeach = async function(ctx, next) {
 
 exports.getCity =async function(ctx, next) {
     let res = await Activity.findAll({where: {status: 0}, attributes:['city'], group: [['city']]})
-    console.log(res)
     ctx.body = {
         success: true,
         data: res

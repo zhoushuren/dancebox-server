@@ -16,7 +16,7 @@ exports.login = async function (ctx, next) {
     json: true
   })
 
-  console.log(res)
+  // console.log(res)
 
   let result = await User.findOne({where: {open_id: res.openid}})
 
