@@ -237,7 +237,7 @@ exports.create = async function (ctx, next) {
                     img,
                     banner_img,
                     city,
-                    status: 0,
+                    status: 1,
                     dance: JSON.stringify(dance),
                     url
                 })
