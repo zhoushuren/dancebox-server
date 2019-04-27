@@ -40,7 +40,9 @@ async function getList(where) {
                 location: val.dataValues.location,
                 city: val.dataValues.city,
                 id: val.dataValues.id,
-                status: val.dataValues.status
+                status: val.dataValues.status,
+                dance: JSON.parse(val.dataValues.dance).map(val => val.substr(0,1)),
+                url: val.dataValues.url
             }
         })
     }
@@ -54,10 +56,10 @@ exports.list = async function(ctx, next) {
 
 //解决数据库雪崩
 class ActivityService {
-  getActivityList() {
+  getActivityList(obj) {
     if (this.requesting === undefined) {
       let self = this;
-      this.requesting =  getList({status: 0}).finally(()=>{
+      this.requesting =  getList({status: 0,...obj}).finally(()=>{
         delete self.requesting;
       })
     }
@@ -68,16 +70,23 @@ class ActivityService {
 let svs = new ActivityService()
 //小程序
 exports.activity_list = async function(ctx, next) {
-    let {page} = ctx.query
+    let {page,city} = ctx.query
     // let result = await getList({status: 0})
     // ctx.body = result
-    let result = await svs.getActivityList()
+  let where = {
+  }
+  console.log(city)
+    if(city !== '全国') {
+      where.city = city
+    }
+
+    let result = await svs.getActivityList(where)
     ctx.body = result
 }
 
 
 exports.detail = async function (is_admin, ctx, next) {
-    console.log(is_admin)
+    // console.log(is_admin)
     let {id}  = ctx.query
     if(!id) {
         ctx.status = 404
@@ -188,7 +197,9 @@ exports.detail = async function (is_admin, ctx, next) {
                 title: detail.dataValues.title,
                 location: detail.dataValues.location,
                 city: detail.dataValues.city,
-                id: detail.dataValues.id
+                id: detail.dataValues.id,
+                dance: JSON.parse(detail.dataValues.dance),
+                url: detail.dataValues.url
             },
             game,
             teach_info: _teach
@@ -208,7 +219,9 @@ exports.create = async function (ctx, next) {
         location,
         img,
         city,
-        banner_img
+        banner_img,
+        dance,
+        url
     } = ctx.request.body
     try{
         if(id) {
@@ -224,7 +237,9 @@ exports.create = async function (ctx, next) {
                     img,
                     banner_img,
                     city,
-                    status: 0
+                    status: 0,
+                    dance: JSON.stringify(dance),
+                    url
                 })
             }catch (e) {
                 console.error(e)

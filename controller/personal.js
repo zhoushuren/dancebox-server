@@ -26,12 +26,20 @@ exports.personalList = async function(ctx, next) {
     const where ={
         status: 0
     }
-    if(type !== undefined) {
+    if(type !== undefined && type !== 'undefined') {
         where.type = type
     }
     const personal = await Personal.findAll({where})
     ctx.body = {
         success: true,
         personal
+    }
+}
+exports.deletePersonal = async function (ctx, next) {
+    let {id} = ctx.query
+    let res = await Personal.findByPk(id)
+    await res.update({status: 1})
+    ctx.body = {
+        success: true
     }
 }

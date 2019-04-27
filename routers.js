@@ -67,6 +67,8 @@ router.post('/admin/personal', authenticated(personal.addPersonal))
 
 router.get('/admin/personal', authenticated(personal.personalList))
 
+router.delete('/admin/personal', authenticated(personal.deletePersonal))
+
 
 
 //静态资源
