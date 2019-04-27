@@ -26,7 +26,7 @@ exports.deleteTopic = async function (ctx, next) {
 
   let res = await Topic.findByPk(id)
   if(res){
-    res.update({status:1})
+    await res.update({status:1})
   }
   ctx.body = {
     success: true
@@ -120,7 +120,7 @@ exports.deleteComment = async function (ctx,next) {
 //获取评论
 exports.getComment = async function(ctx, next) {
   let {post_id} = ctx.query
-  let post = Post.findByPk(post_id)
+  let post = await Post.findByPk(post_id)
   if(!post) {
     return
   }
