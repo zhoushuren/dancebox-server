@@ -18,7 +18,7 @@ exports.login = async function (ctx) {
     if(user === null){
         return ctx.body = {
             success: false,
-            error: ERR_CODE.USER_PASS_ERR
+            error: '密码错误'
         }
     }
     let _password = signPassword(user.dataValues.algorithm, user.dataValues.salt,password)

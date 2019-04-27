@@ -96,7 +96,7 @@ exports.detail = async function (is_admin, ctx, next) {
         let [ detail, gameObj,teach ] = await Promise.all([
             Activity.findOne({
                 where: {
-                    status: 0,
+                    // status: 0,
                     id: id
                 }
             }),
