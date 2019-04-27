@@ -27,7 +27,7 @@ const community_post = sequelize.define('community_post', {
   {
     tableName: 'community_post',
     createdAt: 'created_at',
-    updatedAt: 'update_at',
+    updatedAt: 'updated_at',
     getterMethods: {}
   })
 
