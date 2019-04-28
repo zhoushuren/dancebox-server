@@ -25,7 +25,7 @@ function parseRemark(remark) {
 async function getList(where) {
     let list = await Activity.findAll({
         where,
-        order: [['start_time', 'desc']]
+        order: [['start_time', 'asc']]
     })
 
     return {
