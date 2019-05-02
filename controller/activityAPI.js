@@ -3,6 +3,8 @@ const Activity = require('../model/Activity')
 const ActivityGame = require('../model/ActivityGame')
 const ActivityTeach = require('../model/ActivityTeach')
 const moment = require('moment')
+const Sequelize = require('sequelize')
+const Op = Sequelize.Op
 function filterTime () {
 
 }
@@ -75,6 +77,7 @@ exports.activity_list = async function(ctx, next) {
     // let result = await getList({status: 0})
     // ctx.body = result
   let where = {
+    start_time: {[Op.gte]: new Date()}
   }
   console.log(city)
     if(city !== '全国') {
