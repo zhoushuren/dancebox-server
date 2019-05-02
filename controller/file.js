@@ -7,6 +7,9 @@ const randomstring = require('randomstring')
 const send = require('koa-send');
 
 const filePath = '/activity_img/img/'
+// const imgHost = 'http://127.0.0.1:3007'
+const imgHost = 'http://wx.dancebox.cn'
+
 exports.img = async function(ctx, next) {
     let obj = await formParse(ctx.req)
     ctx.status = 201
@@ -33,7 +36,8 @@ function formParse(req) {
                     if(err) throw err;
                     resolve({
                         msg: '图片上传并改名成功',
-                        file_name: filePath + fileName
+                        file_name: filePath + fileName,
+                        img_url: imgHost + filePath + fileName
                     })
                 })
 
