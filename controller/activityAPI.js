@@ -35,7 +35,7 @@ async function getList(where) {
         list: list.map(val => {
             return {
                 start_time:  moment( val.dataValues.start_time).format('YYYY/MM/DD'),
-                end_time: moment( val.dataValues.start_time).format('YYYY/MM/DD'),
+                end_time: moment( val.dataValues.end_time).format('YYYY/MM/DD'),
                 remark: parseRemark(val.dataValues.remark),
                 img:  activityImgURL + val.dataValues.img,
                 banner_img:  activityImgURL + val.dataValues.banner_img,
@@ -194,7 +194,7 @@ exports.detail = async function (is_admin, ctx, next) {
             success: true,
             activity: {
                 start_time:  moment( detail.dataValues.start_time).format('YYYY/MM/DD'),
-                end_time: moment( detail.dataValues.start_time).format('YYYY/MM/DD'),
+                end_time: moment( detail.dataValues.end_time).format('YYYY/MM/DD'),
                 remark: parseRemark(detail.dataValues.remark),
                 img:  activityImgURL + detail.dataValues.img,
                 banner_img:  activityImgURL + detail.dataValues.banner_img,
