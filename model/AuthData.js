@@ -1,25 +1,22 @@
 const sequelize = require('../config')
 const Sequelize = require('sequelize')
 
-const topic = sequelize.define('community_topic', {
-    name: {
+const auth_data = sequelize.define('wx_auth', {
+    type: {
+      type: Sequelize.NUMBER
+    },
+    open_id: {
       type: Sequelize.STRING
     },
-    desc: {
-      type: Sequelize.STRING
-    },
-    banner: {
-      type: Sequelize.STRING
-    },
-    status: {
+    user_id: {
       type: Sequelize.STRING
     }
   },
   {
-    tableName: 'community_topic',
+    tableName: 'wx_auth',
     createdAt: 'created_at',
     updatedAt: false,
     getterMethods: {}
   })
 
-module.exports = topic
+module.exports = auth_data

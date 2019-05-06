@@ -69,7 +69,14 @@ router.get('/admin/personal', authenticated(personal.personalList))
 
 router.delete('/admin/personal', authenticated(personal.deletePersonal))
 
+//用户
+router.get('/admin/users', authenticated(user.list))
 
+//社区
+
+router.post('/admin/community/topic', authenticated(community.addTopic))
+router.get('/admin/community/topics', authenticated(community.getTopic))
+router.get('/admin/community/post', authenticated(community.getPost))
 
 //静态资源
 staticRouter.post('/img', file.img)
@@ -84,14 +91,12 @@ router.get('/activitys/', activityAPI.activity_list)
 
 router.get('/get_city', activityAPI.getCity)
 
+router.post('/session_key', user.sessionKey)
 router.post('/login', user.login)
 
 router.get('/activity/list', activityAPI.list)
 
-
-
 //社区接口
-router.post('/community/topic',community.addTopic)
 router.delete('/community/topic',community.deleteTopic)
 router.get('/community/topic',community.getTopic)
 

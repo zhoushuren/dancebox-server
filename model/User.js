@@ -2,20 +2,35 @@ const sequelize = require('../config')
 const Sequelize = require('sequelize')
 
 const user = sequelize.define('user', {
-    user_name: {
+    nick_name: {
       type: Sequelize.STRING
     },
-    open_id: {
+    avatar: {
       type: Sequelize.STRING
     },
-    session_key: {
+    gender: {
+      type: Sequelize.NUMBER
+    },
+    country: {
       type: Sequelize.STRING
+    },
+    province: {
+      type: Sequelize.STRING
+    },
+    city: {
+      type: Sequelize.STRING
+    },
+    language: {
+      type: Sequelize.STRING
+    },
+    status: {
+      type: Sequelize.NUMBER
     }
   },
   {
     tableName: 'user',
     createdAt: 'created_at',
-    updatedAt: false,
+    updatedAt: 'updated_at',
     getterMethods: {}
   })
 

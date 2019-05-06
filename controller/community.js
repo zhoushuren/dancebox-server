@@ -4,16 +4,22 @@ const Post = require('../model/Post')
 const Comment = require('../model/Comment')
 const Message = require('../model/Message')
 exports.addTopic = async function(ctx, next) {
-  const {name,banner,status} = ctx.request.body
+  const {name,banner,status, desc} = ctx.request.body
+  try{
+    await Topic.create({
+      name,
+      banner,
+      status,
+      desc
+    })
 
-  await Topic.create({
-    name,
-    banner,
-    status
-  })
-
-  ctx.body = {
-    success: true
+    ctx.body = {
+      success: true
+    }
+  }catch (e) {
+    ctx.body = {
+      success: false
+    }
   }
 }
 
@@ -37,7 +43,7 @@ exports.getTopic = async function (ctx, next) {
   let res = await Topic.findAll({where: {status: 0}})
   ctx.body = {
     success: true,
-    res
+    list: res
   }
 }
 
@@ -83,7 +89,7 @@ exports.getPost = async function (ctx, next) {
 
   ctx.body = {
     success: true,
-    data
+    list: data
   }
 }
 //添加评论
