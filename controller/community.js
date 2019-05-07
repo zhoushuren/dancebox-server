@@ -3,6 +3,9 @@ const Topic = require('../model/Topic')
 const Post = require('../model/Post')
 const Comment = require('../model/Comment')
 const Message = require('../model/Message')
+const {getUserInfoBySession} = require('../services/authService')
+const activityImgURL  = process.env.IMGURL || 'http://127.0.0.1:3007'
+
 exports.addTopic = async function(ctx, next) {
   const {name,banner,status, desc} = ctx.request.body
   try{
@@ -43,20 +46,54 @@ exports.getTopic = async function (ctx, next) {
   let res = await Topic.findAll({where: {status: 0}})
   ctx.body = {
     success: true,
-    list: res
+    list: res.map(val => {
+      return {
+        id: val.dataValues.id,
+        name: val.dataValues.name,
+        desc: val.dataValues.desc,
+        banner: activityImgURL + val.dataValues.banner
+      }
+    })
+  }
+}
+
+exports.getTopicDetail = async function (ctx) {
+  let {id} = ctx.query
+  if(!id) {
+    return
+  }
+  let res = await Topic.findOne({where: {id: id}})
+  if(!res) {
+    return
+  }
+  ctx.body = {
+    success: true,
+    data: {
+      id: res.dataValues.id,
+      name: res.dataValues.name,
+      desc: res.dataValues.desc,
+      banner: activityImgURL + res.dataValues.banner
+    }
   }
 }
 
 //发帖
 exports.addPost = async function(ctx, next) {
-  //TODO: redis 里获取userid
-  let user_id = 0
-  let {topic_id,title,content} = ctx.request.body
+  let user_info = await getUserInfoBySession(ctx)
+  console.log(user_info)
+  if(!user_info) {
+    return //没权限
+  }
+  let user_id = user_info.user_id
+  let {topic_id,title,content,img_list} = ctx.request.body
 
   let res = await Topic.findByPk(topic_id)
-  console.log(res)
   if(!res && res.status >0 ) {
     return
+  }
+
+  if(img_list) {
+    img_list = JSON.stringify(img_list)
   }
 
   await Post.create({
@@ -64,7 +101,10 @@ exports.addPost = async function(ctx, next) {
     title,
     content,
     user_id,
-    topic_name: res.name
+    user_name: user_info.nick_name,
+    user_avatar: user_info.avatar,
+    topic_name: res.name,
+    img_list
   })
 
   ctx.body = {
@@ -82,20 +122,50 @@ exports.deletePost = async function(ctx,next) {
     success: true
   }
 }
-//获取帖子
-exports.getPost = async function (ctx, next) {
-  let {page} = ctx.query
-  let data = await Post.findAll({where: {status:0},order: [['created_at', 'desc']]})
+//获取帖子列表
+exports.getPostList = async function (ctx, next) {
+  let {page,topic_id} = ctx.query
+  const where = {status: 0}
+  if(topic_id) {
+    where.topic_id = topic_id
+  }
+  let data = await Post.findAll({where,order: [['created_at', 'desc']],attributes:['user_avatar','id','topic_id', 'topic_name', 'title', 'up', 'comment', 'user_name', 'created_at']})
 
   ctx.body = {
     success: true,
     list: data
   }
 }
+//获取帖子详情
+exports.getPost = async function(ctx) {
+  let {post_id} = ctx.query
+  if(!post_id) {
+    return
+  }
+  const where = {status: 0,id: post_id}
+
+  let data = await Post.findOne({where,order: [['created_at', 'desc']],attributes:['img_list','user_avatar','id','topic_id','content', 'topic_name', 'title', 'up', 'comment', 'user_name', 'created_at']})
+
+  if(data.img_list) {
+    try{
+      data.img_list = JSON.parse(data.img_list)
+    }catch (e) {
+     console.error(e)
+    }
+  }
+  ctx.body = {
+    success: true,
+    data: data
+  }
+}
 //添加评论
 exports.addComment = async function(ctx, next) {
   let {content,post_id,parent_id} = ctx.request.body
-  let user_id = 0
+  let user_info = await getUserInfoBySession(ctx)
+  if(!user_info) {
+    return //没权限
+  }
+  let user_id = user_info.user_id
   if(!parent_id) {
     parent_id = 0
   }
@@ -134,7 +204,7 @@ exports.getComment = async function(ctx, next) {
     return
   }
 
-  let res = await Comment.findAll({where: {status: 0,post_id}})
+  let res = await Comment.findAll({where: {status: 0,post_id,parent_id: 0}})
   post.update({comment: 1})
   ctx.body = {
     success: true,
@@ -144,7 +214,11 @@ exports.getComment = async function(ctx, next) {
 
 exports.up = async function(ctx, next) {
   let {id,type} = ctx.request.body
-  let user_id = 0
+  let user_info = await getUserInfoBySession(ctx)
+  if(!user_info) {
+    return //没权限
+  }
+  let user_id = user_info.user_id
   if(type === 'post') {
     let res = await Post.findByPk(id)
     if(!res) {
@@ -185,7 +259,11 @@ exports.up = async function(ctx, next) {
 }
 
 exports.getMessage = async function(ctx, next) {
-  let user_id = 0
+  let user_info = await getUserInfoBySession(ctx)
+  if(!user_info) {
+    return //没权限
+  }
+  let user_id = user_info.user_id
   let res = await Message.findAll({where: {to_user_id: user_id}})
 
   ctx.body = {

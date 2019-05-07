@@ -22,6 +22,15 @@ const community_post = sequelize.define('community_post', {
     },
     user_id: {
       type: Sequelize.NUMBER
+    },
+    user_name: {
+      type: Sequelize.STRING
+    },
+    user_avatar: {
+      type: Sequelize.STRING
+    },
+    img_list: {
+      type: Sequelize.STRING
     }
   },
   {

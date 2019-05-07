@@ -99,9 +99,11 @@ router.get('/activity/list', activityAPI.list)
 //社区接口
 router.delete('/community/topic',community.deleteTopic)
 router.get('/community/topic',community.getTopic)
+router.get('/community/topic/detail',community.getTopicDetail)
 
 router.post('/community/post',community.addPost)
 router.delete('/community/post',community.deletePost)
+router.get('/community/posts',community.getPostList)
 router.get('/community/post',community.getPost)
 
 router.post('/community/comment',community.addComment)

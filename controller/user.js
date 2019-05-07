@@ -61,11 +61,11 @@ exports.login = async function(ctx) {
       user_id: user.id
     })
 
-    await setSession(session,user.id)
+    await setSession(session,user.id, data.nickName,  data.avatarUrl)
     ctx.body = {session_token: session}
     return
   }
-  await setSession(session, result.dataValues.user_id)
+  await setSession(session, result.dataValues.user_id, data.nickName,  data.avatarUrl)
   ctx.body = {session_token: session}
 }
 
@@ -116,10 +116,12 @@ WXBizDataCrypt.prototype.decryptData = function (encryptedData, iv) {
 }
 
 //生成 session
-async function setSession(session, user_id) {
+async function setSession(session, user_id, nick_name, avatar) {
 
   let sessionUserHash = {
-    user_id
+    user_id,
+    nick_name,
+    avatar
   }
 
   let oldSession = await getSession(user_id)

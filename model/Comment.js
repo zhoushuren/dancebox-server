@@ -22,6 +22,9 @@ const community_comment = sequelize.define('community_comment', {
     },
     user_id: {
       type: Sequelize.NUMBER
+    },
+    up: {
+      type: Sequelize.NUMBER
     }
   },
   {
