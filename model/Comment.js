@@ -25,6 +25,9 @@ const community_comment = sequelize.define('community_comment', {
     },
     up: {
       type: Sequelize.NUMBER
+    },
+    reply: {
+        type: Sequelize.NUMBER
     }
   },
   {

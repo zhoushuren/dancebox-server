@@ -1,4 +1,5 @@
 
+const moment = require('moment')
 const Topic = require('../model/Topic')
 const Post = require('../model/Post')
 const Comment = require('../model/Comment')
@@ -131,9 +132,34 @@ exports.getPostList = async function (ctx, next) {
   }
   let data = await Post.findAll({where,order: [['created_at', 'desc']],attributes:['user_avatar','id','topic_id', 'topic_name', 'title', 'up', 'comment', 'user_name', 'created_at']})
 
+  let list = data.map( val => {
+    let createAt = new Date(val.created_at).getTime()
+    let now = Date.now()
+      let diff = now = createAt
+      let format_time = moment(val.created_at).format('MM月DD日')
+      if(diff < (3600 * 1000)) {
+          format_time = '一小时前'
+      }
+      if(diff < (60*15 * 1000)) {
+        let f = diff / (60*1000)
+          format_time = f + '分钟前'
+      }
+    return {
+        user_avatar: val.user_avatar,
+        id :val.id,
+        topic_id: val.topic_id,
+        topic_name: val.topic_name,
+        title: val.title,
+        up: val.up,
+        comment: val.comment,
+        user_name: val.user_name,
+        created_at: val.created_at,
+        format_time: format_time
+    }
+  })
   ctx.body = {
     success: true,
-    list: data
+    list: list
   }
 }
 //获取帖子详情
@@ -173,7 +199,9 @@ exports.addComment = async function(ctx, next) {
     post_id,
     parent_id,
     content,
-    user_id
+    user_id,
+    user_avatar: user_info.avatar,
+    user_name: user_info.nick_name
   })
 
   ctx.body = {
@@ -198,14 +226,18 @@ exports.deleteComment = async function (ctx,next) {
 
 //获取评论
 exports.getComment = async function(ctx, next) {
-  let {post_id} = ctx.query
+  let {post_id,parent_id} = ctx.query
   let post = await Post.findByPk(post_id)
   if(!post) {
     return
   }
 
-  let res = await Comment.findAll({where: {status: 0,post_id,parent_id: 0}})
-  post.update({comment: 1})
+  let where = {status: 0,post_id,parent_id: 0}
+  if(parent_id) {
+      where.parent_id = parent_id
+  }
+
+  let res = await Comment.findAll({where })
   ctx.body = {
     success: true,
     list: res

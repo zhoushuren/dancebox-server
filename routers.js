@@ -76,7 +76,7 @@ router.get('/admin/users', authenticated(user.list))
 
 router.post('/admin/community/topic', authenticated(community.addTopic))
 router.get('/admin/community/topics', authenticated(community.getTopic))
-router.get('/admin/community/post', authenticated(community.getPost))
+router.get('/admin/community/post', authenticated(community.getPostList))
 
 //静态资源
 staticRouter.post('/img', file.img)
