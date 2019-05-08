@@ -81,7 +81,7 @@ exports.getTopicDetail = async function (ctx) {
 //发帖
 exports.addPost = async function(ctx, next) {
   let user_info = await getUserInfoBySession(ctx)
-  console.log(user_info)
+    console.log(user_info)
   if(!user_info) {
     return //没权限
   }
@@ -191,6 +191,13 @@ exports.addComment = async function(ctx, next) {
   if(!user_info) {
     return //没权限
   }
+
+  let post = await Post.findByPk(post_id)
+
+  if(!post) {
+    return
+  }
+
   let user_id = user_info.user_id
   if(!parent_id) {
     parent_id = 0
@@ -203,6 +210,7 @@ exports.addComment = async function(ctx, next) {
     user_avatar: user_info.avatar,
     user_name: user_info.nick_name
   })
+    await post.increment('comment')
 
   ctx.body = {
     success: true
@@ -218,7 +226,9 @@ exports.deleteComment = async function (ctx,next) {
     return
   }
 
-  await res.update({status: 0})
+  let post = await Post.findByPk(res.post_id)
+    await post.decrement('comment') //减1
+  await res.update({status: 2}) //2是删除
   ctx.body = {
     success: true
   }
@@ -235,6 +245,8 @@ exports.getComment = async function(ctx, next) {
   let where = {status: 0,post_id,parent_id: 0}
   if(parent_id) {
       where.parent_id = parent_id
+      let comment = await Comment.findByPk(parent_id)
+      await comment.increment('reply')
   }
 
   let res = await Comment.findAll({where })
@@ -256,8 +268,7 @@ exports.up = async function(ctx, next) {
     if(!res) {
       return
     }
-    await res.update({up: 1})
-    console.log(res.dataValues.user_id)
+    await res.increment('up')
     // return
     await Message.create({
       _id: id,

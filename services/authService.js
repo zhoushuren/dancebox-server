@@ -2,7 +2,7 @@
 const cookieParse = require('cookie-parse')
 const redis = require('../redis')
 exports.getUserInfoBySession = async function(ctx) {
-  let session_token = ctx.req.headers.sessionToken
+  let session_token = ctx.req.headers.sessiontoken
   console.log(session_token)
   if (session_token === undefined) {
     return null
