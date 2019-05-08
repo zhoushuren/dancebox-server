@@ -23,7 +23,7 @@
       "DB_USER": "root",
       "DB_PASS": "Dancebox123$%^",
       "IMGURL": "http://wx-test.dancebox.cn",
-      "PORT": 3008
+      "PORT": 3008,
     },
     "env_dev": {
       "NODE_ENV": "development",              // 环境参数，当前指定为开发环境 pm2 start app.js --env_dev
