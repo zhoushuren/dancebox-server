@@ -29,8 +29,9 @@ function formParse(req) {
                 reject(err)
             } else {
                 const oldpath = files.file.path;
-                let _name = files.file.name.split('.')[1]
-                const fileName = randomstring.generate(16) + '.' + _name
+
+                const fileExtension = files.file.name.split('.').pop().toLowerCase();
+                const fileName = randomstring.generate(16) + '.' + fileExtension
                 const newpath = targetFile + '/' + fileName
                 fs.rename(oldpath,newpath,(err)=>{
                     if(err) throw err;
