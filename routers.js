@@ -113,6 +113,7 @@ router.get('/community/comment',community.getComment)
 router.post('/community/up',community.up)
 
 router.get('/community/message',community.getMessage)
+router.get('/test_message',community.testMessage)
 
 module.exports = {
   staticRouter,

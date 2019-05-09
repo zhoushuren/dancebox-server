@@ -325,3 +325,19 @@ exports.getMessage = async function(ctx, next) {
     data: res
   }
 }
+
+const {setMessage} = require('../services/message')
+
+exports.testMessage = async function (ctx) {
+
+  await setMessage({
+    type: 'up',
+    content: 'test111111'
+  },
+    0
+  )
+
+  ctx.body = {
+    success: true
+  }
+}
