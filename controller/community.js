@@ -212,17 +212,20 @@ exports.addComment = async function(ctx, next) {
     user_name: user_info.nick_name
   })
     await post.increment('comment')
+    // console.log(post.user_id)
    rp({
-      uri: 'http://127.0.0.1:3001/messaage?password=dancebox',
+      uri: 'http://127.0.0.1:3001/message?password=dancebox',
       method: 'POST',
-      data: {
+       form: {
           user_id: post.user_id,
           content: content,
           type: 'comment'
-      }
-  }).then((res) => {
-    console.log(res)
-   })
+      },
+       headers: {
+        'cache-control': 'no-cache',
+           'content-type': 'application/x-www-form-urlencoded'
+       },
+  }).then(console.log)
   ctx.body = {
     success: true
   }
