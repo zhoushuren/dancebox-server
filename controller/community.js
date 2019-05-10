@@ -5,6 +5,7 @@ const Post = require('../model/Post')
 const Comment = require('../model/Comment')
 const Message = require('../model/Message')
 const {getUserInfoBySession} = require('../services/authService')
+const rp = require('request-promise')
 const activityImgURL  = process.env.IMGURL || 'http://127.0.0.1:3007'
 
 exports.addTopic = async function(ctx, next) {
@@ -211,7 +212,20 @@ exports.addComment = async function(ctx, next) {
     user_name: user_info.nick_name
   })
     await post.increment('comment')
-
+    // console.log(post.user_id)
+   rp({
+      uri: 'http://127.0.0.1:3001/message?password=dancebox',
+      method: 'POST',
+       form: {
+          user_id: post.user_id,
+          content: content,
+          type: 'comment'
+      },
+       headers: {
+        'cache-control': 'no-cache',
+           'content-type': 'application/x-www-form-urlencoded'
+       },
+  }).then(console.log)
   ctx.body = {
     success: true
   }
