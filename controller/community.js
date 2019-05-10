@@ -4,8 +4,9 @@ const Topic = require('../model/Topic')
 const Post = require('../model/Post')
 const Comment = require('../model/Comment')
 const Message = require('../model/Message')
+const redis = require('../redis')
 const {getUserInfoBySession} = require('../services/authService')
-const rp = require('request-promise')
+const setMessage = require('../services/message')
 const activityImgURL  = process.env.IMGURL || 'http://127.0.0.1:3007'
 
 exports.addTopic = async function(ctx, next) {
@@ -187,7 +188,7 @@ exports.getPost = async function(ctx) {
 }
 //添加评论
 exports.addComment = async function(ctx, next) {
-  let {content,post_id,parent_id} = ctx.request.body
+  let {content,post_id,parent_id,img} = ctx.request.body
   let user_info = await getUserInfoBySession(ctx)
   if(!user_info) {
     return //没权限
@@ -209,23 +210,20 @@ exports.addComment = async function(ctx, next) {
     content,
     user_id,
     user_avatar: user_info.avatar,
-    user_name: user_info.nick_name
+    user_name: user_info.nick_name,
+    img
   })
     await post.increment('comment')
     // console.log(post.user_id)
-   rp({
-      uri: 'http://127.0.0.1:3001/message?password=dancebox',
-      method: 'POST',
-       form: {
-          user_id: post.user_id,
-          content: content,
-          type: 'comment'
-      },
-       headers: {
-        'cache-control': 'no-cache',
-           'content-type': 'application/x-www-form-urlencoded'
-       },
-  }).then(console.log)
+  await setMessage({
+    to_user_id: post.user_id,
+    from_user_info: user_info,
+    from_content: post.title.substr(0,16),
+    content: content,
+    type: 'comment',
+    _id: post_id
+  })
+
   ctx.body = {
     success: true
   }
@@ -323,38 +321,70 @@ exports.getMessage = async function(ctx, next) {
   let user_id = user_info.user_id
 
   let m_len = await redis.llen('message:' +user_id)
-
+  console.log(m_len)
   if(m_len >0) {
     let newMessage = await redis.lrange('message:' + user_id, 0,  -1) //所有元素
     try{
-      let message = JSON.parse(newMessage)
-      Message.create(message).then(()=> {
-        redis.del('message:' + user_id)
+      // {to_user_id,from_user_info,from_content, content,type }
+      let message = newMessage.map(val => {
+        let obj = JSON.parse(val)
+        // console.log('jsonData:',obj)
+        return {
+          _id: obj._id,
+          type: obj.type,
+          to_user_id: obj.to_user_id,
+          from_user_name: obj.from_user_info.nick_name,
+          from_user_avatar: obj.from_user_info.avatar,
+          from_user_id: obj.from_user_info.user_id,
+          from_content: obj.from_content,
+          content: obj.content
+        }
       })
-    }catch (e) {
 
+      console.log('message:',message)
+      await Message.bulkCreate(message)
+      await redis.del('message:' + user_id) //消息入库后删掉内存里的消息
+    }catch (e) {
+      console.error('json解析失败',e)
+      console.log(newMessage)
+    }
+  }
+  let res = await Message.findAll({where: {to_user_id: user_id}})
+
+  let list = res.map(val => {
+    let notice = ''
+
+    if(val.type === 'comment') {
+      notice = val.from_user_name + ' 评论了你'
     }
 
-  }
-
-  let res = await Message.findAll({where: {to_user_id: user_id}})
+    return {
+      notice,
+      _id: val._id,
+      type: val.type,
+      to_user_id: val.to_user_id,
+      from_user_name: val.from_user_name,
+      from_user_avatar: val.from_user_avatar,
+      from_user_id: val.from_user_id,
+      from_content: val.from_content,
+      content: val.content,
+    }
+  })
 
   ctx.body = {
     success: true,
-    data: res
+    list: list
   }
 }
 
-const {setMessage} = require('../services/message')
+
 
 exports.testMessage = async function (ctx) {
 
   await setMessage({
     type: 'up',
     content: 'test111111'
-  },
-    0
-  )
+  })
 
   ctx.body = {
     success: true

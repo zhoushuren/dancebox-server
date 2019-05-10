@@ -28,6 +28,9 @@ const community_comment = sequelize.define('community_comment', {
     },
     reply: {
         type: Sequelize.NUMBER
+    },
+    img: {
+      type: Sequelize.STRING
     }
   },
   {
