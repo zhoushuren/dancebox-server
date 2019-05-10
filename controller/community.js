@@ -307,6 +307,22 @@ exports.getMessage = async function(ctx, next) {
     return //没权限
   }
   let user_id = user_info.user_id
+
+  let m_len = await redis.llen('message:' +user_id)
+
+  if(m_len >0) {
+    let newMessage = await redis.lrange('message:' + user_id, 0,  -1) //所有元素
+    try{
+      let message = JSON.parse(newMessage)
+      Message.create(message).then(()=> {
+        redis.del('message:' + user_id)
+      })
+    }catch (e) {
+
+    }
+
+  }
+
   let res = await Message.findAll({where: {to_user_id: user_id}})
 
   ctx.body = {

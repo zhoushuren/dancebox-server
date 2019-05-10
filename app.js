@@ -3,7 +3,7 @@ const Koa = require('koa')
 const bodyParser = require('koa-bodyparser')
 const url = require('url')
 const {  staticRouter, router} = require('./routers')
-const {ws} = require('./services/message')
+// const {ws} = require('./services/message')
 const app = new Koa()
 
 // const upload = multer({ dest: 'uploads/' })
@@ -35,13 +35,13 @@ const host = process.env.HOST || '0.0.0.0'
 const server = app.listen(port,host)
 // logger.info('user-center server restart')
 
-server.on('upgrade', function upgrade(request, socket, head) {
-  const pathname = url.parse(request.url).pathname;
-  if (pathname === '/ws') {
-    ws.handleUpgrade(request, socket, head, function done(connection) {
-      ws.emit('connection', connection, request);
-    });
-  } else {
-    socket.destroy();
-  }
-});
+// server.on('upgrade', function upgrade(request, socket, head) {
+//   const pathname = url.parse(request.url).pathname;
+//   if (pathname === '/ws') {
+//     ws.handleUpgrade(request, socket, head, function done(connection) {
+//       ws.emit('connection', connection, request);
+//     });
+//   } else {
+//     socket.destroy();
+//   }
+// });
