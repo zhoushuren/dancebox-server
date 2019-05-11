@@ -257,13 +257,22 @@ exports.addComment = async function(ctx, next) {
 exports.deleteComment = async function (ctx,next) {
   let {id} = ctx.query
 
+  let user_info = await getUserInfoBySession(ctx)
+  if(!user_info) {
+    return //没权限
+  }
+
   let res = await Comment.findByPk(id)
   if(!res) {
     return
   }
 
+  if(user_info.user_id !== res.user_id) {
+    return
+  }
+
   let post = await Post.findByPk(res.post_id)
-    await post.decrement('comment') //减1
+  await post.decrement('comment') //减1
   await res.update({status: 2}) //2是删除
   ctx.body = {
     success: true
@@ -338,16 +347,6 @@ exports.up = async function(ctx, next) {
       return
     }
     await post.increment('up')
-    // return
-    // await Message.create({
-    //   _id: id,
-    //   type,
-    //   action: 'up',
-    //   to_user_id: res.dataValues.user_id,
-    //   to_user_name: res.dataValues.user_name,
-    //   from_user_id: user_id,
-    //   from_user_name: user_id //TODO: 暂时这样写
-    // })
   }
   else if(type === 'comment') {
     let comment = await Comment.findByPk(id)
@@ -356,10 +355,7 @@ exports.up = async function(ctx, next) {
     }
 
     let [already_up] = await redis.hmget('up:' +user_id + ':' + post.id,  id)
-    console.log(already_up)
-    console.log(user_id)
-    console.log(post.id)
-    console.log(id)
+
     if(already_up === 'true') {
       ctx.body = {
         success: true,
