@@ -262,12 +262,13 @@ exports.deleteComment = async function (ctx,next) {
     return //没权限
   }
 
-  let res = await Comment.findByPk(id)
+  let res = await await Comment.findByPk(id)
   if(!res) {
     return
   }
 
-  if(user_info.user_id !== res.user_id) {
+  if(user_info.user_id != res.user_id) {
+    console.log('没权限删除别人的帖子')
     return
   }
 
