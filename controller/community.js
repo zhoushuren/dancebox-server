@@ -189,7 +189,7 @@ exports.getPost = async function(ctx) {
 }
 //添加评论
 exports.addComment = async function(ctx, next) {
-  let {content,post_id,parent_id,img} = ctx.request.body
+  let {content,post_id,parent_id,img, reply_other_id} = ctx.request.body
   let user_info = await getUserInfoBySession(ctx)
   if(!user_info) {
     return //没权限
@@ -200,7 +200,8 @@ exports.addComment = async function(ctx, next) {
   if(!post) {
     return //非法
   }
-  let other_user_name
+  let message_to_user_id = post.user_id //  消息发给谁,默认是楼主
+  let other_user_name   //@谁? 默认回复的是楼主，不需要@
   if(parent_id) {
     // where.parent_id = parent_id
     let comment = await Comment.findByPk(parent_id)
@@ -209,12 +210,24 @@ exports.addComment = async function(ctx, next) {
     }
     other_user_name = comment.user_name
     await comment.increment('reply') //  父帖子的回复数量+1
+    message_to_user_id = comment.user_id  // 回复的是这个楼，消息发给这个楼
   }
-
   let user_id = user_info.user_id
   if(!parent_id) {
     parent_id = 0
   }
+
+  //小窗口里的对话
+  if(reply_other_id) {
+    let comment = await Comment.findByPk(parent_id)
+    if(!comment){
+      return //非法
+    }
+    other_user_name = comment.user_name
+    message_to_user_id = comment.user_id  // 回复的是这个楼，消息发给这个楼
+  }
+
+
   await Comment.create({
     post_id,
     parent_id,
@@ -228,7 +241,7 @@ exports.addComment = async function(ctx, next) {
   await post.increment('comment')
 
   await setMessage({
-    to_user_id: post.user_id,
+    to_user_id: message_to_user_id,
     from_user_info: user_info,
     from_content: post.title.substr(0,16),
     content: content,
