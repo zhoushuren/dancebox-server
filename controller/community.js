@@ -46,6 +46,7 @@ exports.deleteTopic = async function (ctx, next) {
 }
 
 exports.getTopic = async function (ctx, next) {
+  let {page} = ctx.query
   let res = await Topic.findAll({where: {status: 0}})
   ctx.body = {
     success: true,
@@ -197,7 +198,17 @@ exports.addComment = async function(ctx, next) {
   let post = await Post.findByPk(post_id)
 
   if(!post) {
-    return
+    return //非法
+  }
+  let other_user_name
+  if(parent_id) {
+    // where.parent_id = parent_id
+    let comment = await Comment.findByPk(parent_id)
+    if(!comment){
+      return //非法
+    }
+    other_user_name = comment.user_name
+    await comment.increment('reply') //  父帖子的回复数量+1
   }
 
   let user_id = user_info.user_id
@@ -211,10 +222,11 @@ exports.addComment = async function(ctx, next) {
     user_id,
     user_avatar: user_info.avatar,
     user_name: user_info.nick_name,
-    img
+    img,
+    other_user_name
   })
-    await post.increment('comment')
-    // console.log(post.user_id)
+  await post.increment('comment')
+
   await setMessage({
     to_user_id: post.user_id,
     from_user_info: user_info,
@@ -254,63 +266,112 @@ exports.getComment = async function(ctx, next) {
     return
   }
 
-  let where = {status: 0,post_id,parent_id: 0}
-  if(parent_id) {
-      where.parent_id = parent_id
-      let comment = await Comment.findByPk(parent_id)
-      await comment.increment('reply')
-  }
+  let user_info = await getUserInfoBySession(ctx)
 
+  let where = {status: 0,post_id,parent_id: 0}
+
+  if(parent_id>0) {
+    where.parent_id = parent_id
+  }
   let res = await Comment.findAll({where })
-  ctx.body = {
-    success: true,
-    list: res
+
+  if(!user_info) {
+    ctx.body = {
+      success: true,
+      list: res
+    }
+  }else{
+    //有用户， 需要显示是否是自己的帖子
+
+    let upHash = await redis.hgetall('up:' + user_info.user_id + ':' + post.id)
+    let list = res.map(val => {
+      let my
+      if(val.dataValues.user_id === user_info.user_id) {
+        my = true
+      }
+      return {
+        id: val.dataValues.id,
+        post_id: val.dataValues.post_id,
+        content: val.dataValues.content,
+        user_name: val.dataValues.user_name,
+        user_avatar: val.dataValues.user_avatar,
+        status: val.dataValues.status,
+        parent_id: val.dataValues.parent_id,
+        user_id: val.dataValues.user_id,
+        up: val.dataValues.up,
+        reply: val.dataValues.reply,
+        img: val.dataValues.img,
+        other_user_name: val.dataValues.other_user_name,
+        my,
+        already_up: upHash[val.dataValues.id]
+      }
+    })
+    ctx.body = {
+      success: true,
+      list: list
+    }
   }
 }
 
 exports.up = async function(ctx, next) {
-  let {id,type} = ctx.request.body
+  let {id,type,post_id} = ctx.request.body
   let user_info = await getUserInfoBySession(ctx)
   if(!user_info) {
     return //没权限
   }
   let user_id = user_info.user_id
+  let post = await Post.findByPk(post_id)
   if(type === 'post') {
-    let res = await Post.findByPk(id)
-    if(!res) {
+    if(!post) {
       return
     }
-    await res.increment('up')
+    await post.increment('up')
     // return
-    await Message.create({
-      _id: id,
-      type,
-      action: 'up',
-      to_user_id: res.dataValues.user_id,
-      to_user_name: res.dataValues.user_name,
-      from_user_id: user_id,
-      from_user_name: user_id //TODO: 暂时这样写
-    })
+    // await Message.create({
+    //   _id: id,
+    //   type,
+    //   action: 'up',
+    //   to_user_id: res.dataValues.user_id,
+    //   to_user_name: res.dataValues.user_name,
+    //   from_user_id: user_id,
+    //   from_user_name: user_id //TODO: 暂时这样写
+    // })
   }
-  if(type === 'comment') {
-    let res = await Comment.findByPk(id)
-    if(!res) {
+  else if(type === 'comment') {
+    let comment = await Comment.findByPk(id)
+    if(!comment) {
       return
     }
-    await res.update({up: 1})
-    await Message.create({
-      _id: id,
-      type,
-      action: 'up',
-      to_user_id: res.dataValues.user_id,
-      to_user_name: res.dataValues.user_name,
-      from_user_id: user_id,
-      from_user_name: user_id //TODO: 暂时这样写
+
+    let [already_up] = await redis.hmget('up:' +user_id + ':' + post.id,  id)
+    console.log(already_up)
+    console.log(user_id)
+    console.log(post.id)
+    console.log(id)
+    if(already_up === 'true') {
+      ctx.body = {
+        success: true,
+        count: false
+      }
+      return
+    }
+    await comment.increment('up')
+    let res = await redis.hmset('up:' +user_id + ':' + post.id,  id, true) //我赞了哪个帖子下面的哪个评论
+    console.log(res)
+    await setMessage({
+      to_user_id: comment.user_id,
+      from_user_info: user_info,
+      from_content: comment.content.substr(0,16),
+      content: '',
+      type: 'up',
+      _id: id
     })
+    ctx.body = {
+      success: true,
+      count: true
+    }
   }
-  ctx.body = {
-    success: true
-  }
+
 }
 
 exports.getMessage = async function(ctx, next) {
@@ -341,7 +402,6 @@ exports.getMessage = async function(ctx, next) {
         }
       })
 
-      console.log('message:',message)
       await Message.bulkCreate(message)
       await redis.del('message:' + user_id) //消息入库后删掉内存里的消息
     }catch (e) {
@@ -349,13 +409,17 @@ exports.getMessage = async function(ctx, next) {
       console.log(newMessage)
     }
   }
-  let res = await Message.findAll({where: {to_user_id: user_id}})
+  let res = await Message.findAll({where: {to_user_id: user_id},order: [['created_at','desc']]})
 
   let list = res.map(val => {
     let notice = ''
 
     if(val.type === 'comment') {
       notice = val.from_user_name + ' 评论了你'
+    }
+
+    if(val.type === 'up') {
+      notice = val.from_user_name + ' 赞了你'
     }
 
     return {

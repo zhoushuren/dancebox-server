@@ -31,6 +31,9 @@ const community_comment = sequelize.define('community_comment', {
     },
     img: {
       type: Sequelize.STRING
+    },
+    other_user_name: {
+      type: Sequelize.STRING
     }
   },
   {
