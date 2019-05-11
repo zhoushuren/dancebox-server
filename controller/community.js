@@ -219,14 +219,13 @@ exports.addComment = async function(ctx, next) {
 
   //小窗口里的对话
   if(reply_other_id) {
-    let comment = await Comment.findByPk(parent_id)
+    let comment = await Comment.findByPk(reply_other_id)
     if(!comment){
       return //非法
     }
     other_user_name = comment.user_name
     message_to_user_id = comment.user_id  // 回复的是这个楼，消息发给这个楼
   }
-
 
   await Comment.create({
     post_id,
