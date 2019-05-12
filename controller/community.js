@@ -133,7 +133,7 @@ exports.getPostList = async function (ctx, next) {
   if(topic_id) {
     where.topic_id = topic_id
   }
-  let data = await Post.findAll({where,order: [['created_at', 'desc']],attributes:['user_avatar','id','topic_id', 'topic_name', 'title', 'up', 'comment', 'user_name', 'created_at'],limit: 20})
+  let data = await Post.findAll({where,order: [['updated_at', 'desc']],attributes:['user_avatar','id','topic_id', 'topic_name', 'title', 'up', 'comment', 'user_name', 'created_at'],limit: 20})
 
   let list = data.map( val => {
     let createAt = new Date(val.created_at).getTime()
