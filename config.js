@@ -7,7 +7,7 @@ const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASS, {
     host: 'localhost',
     dialect: 'mysql',
     pool: {
-        max: 100,
+        max: 500,
         min: 10,
         acquire: 30000,
         idle: 10000
