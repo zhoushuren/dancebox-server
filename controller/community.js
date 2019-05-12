@@ -133,7 +133,7 @@ exports.getPostList = async function (ctx, next) {
   if(topic_id) {
     where.topic_id = topic_id
   }
-  let data = await Post.findAll({where,order: [['created_at', 'desc']],attributes:['user_avatar','id','topic_id', 'topic_name', 'title', 'up', 'comment', 'user_name', 'created_at']})
+  let data = await Post.findAll({where,order: [['created_at', 'desc']],attributes:['user_avatar','id','topic_id', 'topic_name', 'title', 'up', 'comment', 'user_name', 'created_at'],limit: 20})
 
   let list = data.map( val => {
     let createAt = new Date(val.created_at).getTime()
@@ -295,7 +295,7 @@ exports.getComment = async function(ctx, next) {
   if(parent_id>0) {
     where.parent_id = parent_id
   }
-  let res = await Comment.findAll({where })
+  let res = await Comment.findAll({where ,limit: 20})
 
   if(!user_info) {
     ctx.body = {
@@ -418,7 +418,7 @@ exports.getMessage = async function(ctx, next) {
       console.log(newMessage)
     }
   }
-  let res = await Message.findAll({where: {to_user_id: user_id},order: [['created_at','desc']]})
+  let res = await Message.findAll({where: {to_user_id: user_id},order: [['created_at','desc']],limit: 20})
 
   let list = res.map(val => {
     let notice = ''
