@@ -90,4 +90,4 @@ function test(file_path) {
     const token = uptoken(bucket, file_path)
     uploadFile(token,)
 }
-test('0fwqy5ZHbnbMq0P5.jpg')
+// test('0fwqy5ZHbnbMq0P5.jpg')
