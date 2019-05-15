@@ -77,9 +77,7 @@ exports.getTopicDetail = async function (ctx) {
       id: res.dataValues.id,
       name: res.dataValues.name,
       desc: res.dataValues.desc,
-      view_count: res.dataValues.view_count,
-      post_count: res.dataValues.post_count,
-      banner: activityImgURL + res.dataValues.banner,
+      banner: activityImgURL + res.dataValues.banner
     }
   }
 }
