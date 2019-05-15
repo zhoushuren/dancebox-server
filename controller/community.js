@@ -1,5 +1,7 @@
 
 const moment = require('moment')
+const Sequelize = require('sequelize')
+const Op = Sequelize.Op
 const Topic = require('../model/Topic')
 const Post = require('../model/Post')
 const Comment = require('../model/Comment')
@@ -148,10 +150,14 @@ function formarTime(time) {
 }
 //获取帖子列表
 exports.getPostList = async function (ctx, next) {
-  let {page,topic_id} = ctx.query
+  let {updated_at,topic_id} = ctx.query
   const where = {status: 0}
   if(topic_id) {
     where.topic_id = topic_id
+  }
+
+  if(updated_at != '') {
+    where.updated_at =  {[Op.lt]: updated_at}
   }
   let data = await Post.findAll({where,order: [['created_at', 'desc']],attributes:['user_avatar','id','topic_id', 'topic_name', 'title', 'up', 'comment', 'user_name', 'created_at', 'updated_at']})
 
