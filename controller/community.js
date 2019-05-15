@@ -155,11 +155,11 @@ exports.getPostList = async function (ctx, next) {
   if(topic_id) {
     where.topic_id = topic_id
   }
-
-  if(updated_at != '') {
+  console.log(updated_at)
+  if(updated_at != undefined) {
     where.updated_at =  {[Op.lt]: updated_at}
   }
-  let data = await Post.findAll({where,order: [['created_at', 'desc']],attributes:['user_avatar','id','topic_id', 'topic_name', 'title', 'up', 'comment', 'user_name', 'created_at', 'updated_at']})
+  let data = await Post.findAll({where,order: [['created_at', 'desc']],attributes:['user_avatar','id','topic_id', 'topic_name', 'title', 'up', 'comment', 'user_name', 'created_at', 'updated_at'],limit: 20})
 
   let list = data.map( val => {
     let format_time = formarTime(val.created_at)
@@ -306,7 +306,7 @@ exports.deleteComment = async function (ctx,next) {
 
 //获取评论
 exports.getComment = async function(ctx, next) {
-  let {post_id,parent_id} = ctx.query
+  let {post_id,parent_id,last_id} = ctx.query
   let post = await Post.findByPk(post_id)
   if(!post) {
     return
@@ -319,7 +319,11 @@ exports.getComment = async function(ctx, next) {
   if(parent_id>0) {
     where.parent_id = parent_id
   }
-  let res = await Comment.findAll({where })
+
+  if(last_id > 0) {
+    where.id = {[Op.lt]: last_id}
+  }
+  let res = await Comment.findAll({where ,limit: 20, order: [['id', 'desc']]})
 
   if(!user_info) {
     ctx.body = {
