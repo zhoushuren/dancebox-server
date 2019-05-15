@@ -70,13 +70,16 @@ exports.getTopicDetail = async function (ctx) {
   if(!res) {
     return
   }
+  await res.increment('view_count')
   ctx.body = {
     success: true,
     data: {
       id: res.dataValues.id,
       name: res.dataValues.name,
       desc: res.dataValues.desc,
-      banner: activityImgURL + res.dataValues.banner
+      view_count: res.dataValues.view_count,
+      post_count: res.dataValues.post_count,
+      banner: activityImgURL + res.dataValues.banner,
     }
   }
 }
@@ -95,6 +98,8 @@ exports.addPost = async function(ctx, next) {
   if(!res && res.status >0 ) {
     return
   }
+
+  res.increment('post_count')
 
   if(img_list) {
     img_list = JSON.stringify(img_list)
@@ -126,6 +131,23 @@ exports.deletePost = async function(ctx,next) {
     success: true
   }
 }
+//时间格式
+function formarTime(time) {
+  let now = Date.now()
+  let at = new Date(time).getTime()
+
+  if((now - at) < 3600000 ) {
+    return '刚刚'
+  }
+  if((now - at) < (3600000*24) ){
+    return '几小时前'
+  }
+  if((now - at) < (3600000*24 *10) ){
+    return '几天前'
+  }
+
+  return moment(time).format('MM月DD日')
+}
 //获取帖子列表
 exports.getPostList = async function (ctx, next) {
   let {page,topic_id} = ctx.query
@@ -133,20 +155,10 @@ exports.getPostList = async function (ctx, next) {
   if(topic_id) {
     where.topic_id = topic_id
   }
-  let data = await Post.findAll({where,order: [['created_at', 'desc']],attributes:['user_avatar','id','topic_id', 'topic_name', 'title', 'up', 'comment', 'user_name', 'created_at']})
+  let data = await Post.findAll({where,order: [['created_at', 'desc']],attributes:['user_avatar','id','topic_id', 'topic_name', 'title', 'up', 'comment', 'user_name', 'created_at', 'updated_at']})
 
   let list = data.map( val => {
-    let createAt = new Date(val.created_at).getTime()
-    let now = Date.now()
-      let diff = now = createAt
-      let format_time = moment(val.created_at).format('MM月DD日')
-      if(diff < (3600 * 1000)) {
-          format_time = '一小时前'
-      }
-      if(diff < (60*15 * 1000)) {
-        let f = diff / (60*1000)
-          format_time = f + '分钟前'
-      }
+    let format_time = formarTime(val.created_at)
     return {
         user_avatar: val.user_avatar,
         id :val.id,
@@ -157,6 +169,7 @@ exports.getPostList = async function (ctx, next) {
         comment: val.comment,
         user_name: val.user_name,
         created_at: val.created_at,
+        updated_at: val.updated_at,
         format_time: format_time
     }
   })
@@ -182,9 +195,16 @@ exports.getPost = async function(ctx) {
      console.error(e)
     }
   }
+
+  data.increment('view_count')
+
+  let format_time = formarTime(data.created_at)
   ctx.body = {
     success: true,
-    data: data
+    data: {
+      ...data.dataValues,
+      format_time
+    }
   }
 }
 //添加评论
@@ -311,6 +331,7 @@ exports.getComment = async function(ctx, next) {
       if(val.dataValues.user_id === user_info.user_id) {
         my = true
       }
+      let format_time = formarTime(val.created_at)
       return {
         id: val.dataValues.id,
         post_id: val.dataValues.post_id,
@@ -325,7 +346,8 @@ exports.getComment = async function(ctx, next) {
         img: val.dataValues.img,
         other_user_name: val.dataValues.other_user_name,
         my,
-        already_up: upHash[val.dataValues.id]
+        already_up: upHash[val.dataValues.id],
+        format_time
       }
     })
     ctx.body = {
@@ -358,6 +380,7 @@ exports.up = async function(ctx, next) {
     let [already_up] = await redis.hmget('up:' +user_id + ':' + post.id,  id)
 
     if(already_up === 'true') {
+      await redis.del('up:' +user_id + ':' + post.id)
       ctx.body = {
         success: true,
         count: false
@@ -366,7 +389,6 @@ exports.up = async function(ctx, next) {
     }
     await comment.increment('up')
     let res = await redis.hmset('up:' +user_id + ':' + post.id,  id, true) //我赞了哪个帖子下面的哪个评论
-    console.log(res)
     await setMessage({
       to_user_id: comment.user_id,
       from_user_info: user_info,
@@ -407,7 +429,7 @@ exports.getMessage = async function(ctx, next) {
           from_user_avatar: obj.from_user_info.avatar,
           from_user_id: obj.from_user_info.user_id,
           from_content: obj.from_content,
-          content: obj.content
+          content: obj.content,
         }
       })
 
@@ -430,7 +452,7 @@ exports.getMessage = async function(ctx, next) {
     if(val.type === 'up') {
       notice = val.from_user_name + ' 赞了你'
     }
-
+    let format_time = formarTime(val.created_at)
     return {
       notice,
       _id: val._id,
@@ -441,6 +463,7 @@ exports.getMessage = async function(ctx, next) {
       from_user_id: val.from_user_id,
       from_content: val.from_content,
       content: val.content,
+      format_time
     }
   })
 

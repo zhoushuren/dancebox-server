@@ -13,12 +13,21 @@ const topic = sequelize.define('community_topic', {
     },
     status: {
       type: Sequelize.STRING
+    },
+    sort: {
+      type: Sequelize.NUMBER
+    },
+    post_count: {
+      type: Sequelize.NUMBER
+    },
+    view_count: {
+      type: Sequelize.NUMBER
     }
   },
   {
     tableName: 'community_topic',
     createdAt: 'created_at',
-    updatedAt: false,
+    updatedAt: 'updated_at',
     getterMethods: {}
   })
 
