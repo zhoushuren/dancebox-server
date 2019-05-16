@@ -87,8 +87,8 @@ exports.getTopicDetail = async function (ctx) {
 //发帖
 exports.addPost = async function(ctx, next) {
   let user_info = await getUserInfoBySession(ctx)
-    console.log(user_info)
-  if(!user_info) {
+
+  if(!user_info.user_id) {
     return //没权限
   }
   let user_id = user_info.user_id
@@ -155,7 +155,7 @@ exports.getPostList = async function (ctx, next) {
   if(topic_id) {
     where.topic_id = topic_id
   }
-  console.log(updated_at)
+
   if(updated_at != undefined) {
     where.updated_at =  {[Op.lt]: updated_at}
   }
@@ -215,7 +215,7 @@ exports.getPost = async function(ctx) {
 exports.addComment = async function(ctx, next) {
   let {content,post_id,parent_id,img, reply_other_id} = ctx.request.body
   let user_info = await getUserInfoBySession(ctx)
-  if(!user_info) {
+  if(!user_info.user_id) {
     return //没权限
   }
 
@@ -282,7 +282,7 @@ exports.deleteComment = async function (ctx,next) {
   let {id} = ctx.query
 
   let user_info = await getUserInfoBySession(ctx)
-  if(!user_info) {
+  if(!user_info.user_id) {
     return //没权限
   }
 
@@ -325,7 +325,7 @@ exports.getComment = async function(ctx, next) {
   }
   let res = await Comment.findAll({where ,limit: 20, order: [['id', 'desc']]})
 
-  if(!user_info) {
+  if(!user_info.user_id) {
     ctx.body = {
       success: true,
       list: res
@@ -368,7 +368,7 @@ exports.getComment = async function(ctx, next) {
 exports.up = async function(ctx, next) {
   let {id,type,post_id} = ctx.request.body
   let user_info = await getUserInfoBySession(ctx)
-  if(!user_info || !user_info.user_id) {
+  if( !user_info.user_id) {
     return //没权限
   }
   let user_id = user_info.user_id
@@ -415,13 +415,13 @@ exports.up = async function(ctx, next) {
 
 exports.getMessage = async function(ctx, next) {
   let user_info = await getUserInfoBySession(ctx)
-  if(!user_info) {
+  if(!user_info.user_id) {
     return //没权限
   }
   let user_id = user_info.user_id
 
   let m_len = await redis.llen('message:' +user_id)
-  console.log(m_len)
+
   if(m_len >0) {
     let newMessage = await redis.lrange('message:' + user_id, 0,  -1) //所有元素
     try{
