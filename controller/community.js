@@ -368,7 +368,7 @@ exports.getComment = async function(ctx, next) {
 exports.up = async function(ctx, next) {
   let {id,type,post_id} = ctx.request.body
   let user_info = await getUserInfoBySession(ctx)
-  if(!user_info) {
+  if(!user_info || !user_info.user_id) {
     return //没权限
   }
   let user_id = user_info.user_id
