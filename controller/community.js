@@ -159,7 +159,7 @@ exports.getPostList = async function (ctx, next) {
   if(updated_at != undefined) {
     where.updated_at =  {[Op.lt]: updated_at}
   }
-  let data = await Post.findAll({where,order: [['created_at', 'desc']],attributes:['user_avatar','id','topic_id', 'topic_name', 'title', 'up', 'comment', 'user_name', 'created_at', 'updated_at'],limit: 20})
+  let data = await Post.findAll({where,order: [['updated_at', 'desc']],attributes:['user_avatar','id','topic_id', 'topic_name', 'title', 'up', 'comment', 'user_name', 'created_at', 'updated_at'],limit: 20})
 
   let list = data.map( val => {
     let format_time = formarTime(val.created_at)
@@ -190,7 +190,7 @@ exports.getPost = async function(ctx) {
   }
   const where = {status: 0,id: post_id}
 
-  let data = await Post.findOne({where,order: [['created_at', 'desc']],attributes:['img_list','user_avatar','id','topic_id','content', 'topic_name', 'title', 'up', 'comment', 'user_name', 'created_at']})
+  let data = await Post.findOne({where,attributes:['img_list','user_avatar','id','topic_id','content', 'topic_name', 'title', 'up', 'comment', 'user_name', 'created_at']})
 
   if(data.img_list) {
     try{
