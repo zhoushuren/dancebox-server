@@ -31,6 +31,9 @@ const community_post = sequelize.define('community_post', {
     },
     img_list: {
       type: Sequelize.STRING
+    },
+    recommend: {
+      type: Sequelize.NUMBER
     }
   },
   {

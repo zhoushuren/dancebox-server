@@ -105,6 +105,7 @@ router.post('/community/post',community.addPost)
 router.delete('/community/post',community.deletePost)
 router.get('/community/posts',community.getPostList)
 router.get('/community/post',community.getPost)
+router.get('/community/recommend',community.recommend)
 
 router.post('/community/comment',community.addComment)
 router.delete('/community/comment',community.deleteComment)

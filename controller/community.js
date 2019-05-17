@@ -57,7 +57,10 @@ exports.getTopic = async function (ctx, next) {
         id: val.dataValues.id,
         name: val.dataValues.name,
         desc: val.dataValues.desc,
-        banner: activityImgURL + val.dataValues.banner
+        post_count: val.dataValues.post_count,
+        view_count: val.dataValues.view_count,
+        sort: val.dataValues.sort,
+        banner: activityImgURL + val.dataValues.banner,
       }
     })
   }
@@ -79,6 +82,9 @@ exports.getTopicDetail = async function (ctx) {
       id: res.dataValues.id,
       name: res.dataValues.name,
       desc: res.dataValues.desc,
+      post_count: res.dataValues.post_count,
+      view_count: res.dataValues.view_count,
+      sort: res.dataValues.sort,
       banner: activityImgURL + res.dataValues.banner
     }
   }
@@ -481,6 +487,36 @@ exports.getMessage = async function(ctx, next) {
   }
 }
 
+exports.recommend = async function(ctx) {
+  let {updated_at} = ctx.query
+  const where = {status: 0, recommend: 1}
+
+  if(updated_at != undefined) {
+    where.updated_at =  {[Op.lt]: updated_at}
+  }
+  let data = await Post.findAll({where,order: [['updated_at', 'desc']],attributes:['content','user_avatar','id','topic_id', 'topic_name', 'title', 'up', 'comment', 'user_name', 'created_at', 'updated_at'],limit: 20})
+
+  let list = data.map( val => {
+    let format_time = formarTime(val.created_at)
+    return {
+      user_avatar: val.user_avatar,
+      id :val.id,
+      topic_id: val.topic_id,
+      topic_name: val.topic_name,
+      title: val.title,
+      up: val.up,
+      comment: val.comment,
+      user_name: val.user_name,
+      created_at: val.created_at,
+      updated_at: val.updated_at,
+      format_time: format_time
+    }
+  })
+  ctx.body = {
+    success: true,
+    list: list
+  }
+}
 
 
 exports.testMessage = async function (ctx) {
