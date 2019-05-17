@@ -532,6 +532,24 @@ exports.report = async function(ctx) {
   }
 }
 
+exports.count = async function(ctx) {
+  let user_info = await getUserInfoBySession(ctx)
+  console.log(user_info)
+  if(!user_info.user_id) {
+    return //没权限
+  }
+
+  let post = Post.count({where: {user_id: user_info.user_id}})
+  let comment = Comment.count({where: {user_id: user_info.user_id}})
+
+  let [res1, res2 ] = await Promise.all([post,comment])
+
+  ctx.body = {
+    post: res1,
+    comment: res2
+  }
+}
+
 exports.testMessage = async function (ctx) {
 
   await setMessage({
