@@ -141,7 +141,6 @@ exports.deletePost = async function(ctx,next) {
 function formarTime(time) {
   let now = Date.now()
   let at = new Date(time).getTime()
-
   if((now - at) < 3600000 ) {
     return '刚刚'
   }
@@ -151,7 +150,6 @@ function formarTime(time) {
   if((now - at) < (3600000*24 *10) ){
     return '几天前'
   }
-
   return moment(time).format('MM月DD日')
 }
 //获取帖子列表
