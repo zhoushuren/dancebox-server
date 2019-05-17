@@ -112,6 +112,7 @@ router.delete('/community/comment',community.deleteComment)
 router.get('/community/comment',community.getComment)
 
 router.post('/community/up',community.up)
+router.post('/community/report',community.report)
 
 router.get('/community/message',community.getMessage)
 router.get('/test_message',community.testMessage)

@@ -6,6 +6,7 @@ const Topic = require('../model/Topic')
 const Post = require('../model/Post')
 const Comment = require('../model/Comment')
 const Message = require('../model/Message')
+const Report = require('../model/Report')
 const redis = require('../redis')
 const {getUserInfoBySession} = require('../services/authService')
 const setMessage = require('../services/message')
@@ -516,6 +517,20 @@ exports.recommend = async function(ctx) {
   }
 }
 
+
+exports.report = async function(ctx) {
+  let {type,id, report_type} = ctx.request.body
+
+  await Report.create({
+    item_id: id,
+    type,
+    report_type
+  })
+
+  ctx.body = {
+    success: true
+  }
+}
 
 exports.testMessage = async function (ctx) {
 
