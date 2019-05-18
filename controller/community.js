@@ -363,6 +363,11 @@ exports.getComment = async function(ctx, next) {
         my = true
       }
       let format_time = formarTime(val.created_at)
+      let _img
+      if( val.dataValues.img) {
+        _img = val.dataValues.img.indexOf('http') === 0 ? val.dataValues.img : QIniuCdn + '/' + val.dataValues.img
+      }
+
       return {
         id: val.dataValues.id,
         post_id: val.dataValues.post_id,
@@ -374,7 +379,7 @@ exports.getComment = async function(ctx, next) {
         user_id: val.dataValues.user_id,
         up: val.dataValues.up,
         reply: val.dataValues.reply,
-        img: val.dataValues.img.indexOf('http') === 0 ? val.dataValues.img : QIniuCdn + '/' + val.dataValues.img,
+        img: _img,
         other_user_name: val.dataValues.other_user_name,
         my,
         already_up: upHash[val.dataValues.id],
