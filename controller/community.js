@@ -266,7 +266,11 @@ exports.addComment = async function(ctx, next) {
     other_user_name = comment.user_name
     message_to_user_id = comment.user_id  // 回复的是这个楼，消息发给这个楼
   }
-  let imgName = img.split('/').pop()
+  let imgName = null
+
+  if(img) {
+    imgName = img.split('/').pop()
+  }
 
   qiniu.uploadQiniu(imgName)
 
