@@ -8,16 +8,19 @@ const Comment = require('../model/Comment')
 const Message = require('../model/Message')
 const Report = require('../model/Report')
 const redis = require('../redis')
+const qiniu = require('../services/qiniu')
 const {getUserInfoBySession} = require('../services/authService')
 const setMessage = require('../services/message')
 const activityImgURL  = process.env.IMGURL || 'http://127.0.0.1:3007'
-
+const QIniuCdn = 'http://static.dancebox.cn'
 exports.addTopic = async function(ctx, next) {
   const {name,banner,status, desc} = ctx.request.body
   try{
+    let imgName = banner.split('/').pop()
+    qiniu.uploadQiniu(imgName)
     await Topic.create({
       name,
-      banner,
+      banner: imgName,
       status,
       desc
     })
@@ -61,7 +64,7 @@ exports.getTopic = async function (ctx, next) {
         post_count: val.dataValues.post_count,
         view_count: val.dataValues.view_count,
         sort: val.dataValues.sort,
-        banner: activityImgURL + val.dataValues.banner,
+        banner: val.dataValues.banner.indexOf('/activity_img') === 0 ?  activityImgURL + val.dataValues.banner : QIniuCdn + '/' + val.dataValues.banner,
       }
     })
   }
@@ -109,7 +112,13 @@ exports.addPost = async function(ctx, next) {
   res.increment('post_count')
 
   if(img_list) {
-    img_list = JSON.stringify(img_list)
+    let _img_list = img_list.map((img) => {
+      let imgName = img.split('/').pop()
+      qiniu.uploadQiniu(imgName)
+      return imgName
+    })
+
+    img_list = JSON.stringify(_img_list)
   }
 
   await Post.create({
@@ -199,7 +208,9 @@ exports.getPost = async function(ctx) {
 
   if(data.img_list) {
     try{
-      data.img_list = JSON.parse(data.img_list)
+      data.img_list = JSON.parse(data.img_list).map((img)=> {
+        return img.indexOf('http') === 0 ? img : QIniuCdn + '/' + img
+      })
     }catch (e) {
      console.error(e)
     }
@@ -255,6 +266,9 @@ exports.addComment = async function(ctx, next) {
     other_user_name = comment.user_name
     message_to_user_id = comment.user_id  // 回复的是这个楼，消息发给这个楼
   }
+  let imgName = img.split('/').pop()
+
+  qiniu.uploadQiniu(imgName)
 
   await Comment.create({
     post_id,
@@ -263,12 +277,12 @@ exports.addComment = async function(ctx, next) {
     user_id,
     user_avatar: user_info.avatar,
     user_name: user_info.nick_name,
-    img,
+    img: imgName,
     other_user_name
   })
   await post.increment('comment')
 
-  await setMessage({
+  setMessage({
     to_user_id: message_to_user_id,
     from_user_info: user_info,
     from_content: post.title.substr(0,16),
@@ -338,9 +352,10 @@ exports.getComment = async function(ctx, next) {
   }else{
     //有用户， 需要显示是否是自己的帖子
 
+    //查询自己是否点赞过帖子
     let upHash = await redis.hgetall('up:' + user_info.user_id + ':' + post.id)
     let list = res.map(val => {
-      let my
+      let my = false
       if(val.dataValues.user_id == user_info.user_id) {
         my = true
       }
@@ -356,7 +371,7 @@ exports.getComment = async function(ctx, next) {
         user_id: val.dataValues.user_id,
         up: val.dataValues.up,
         reply: val.dataValues.reply,
-        img: val.dataValues.img,
+        img: val.dataValues.img.indexOf('http') === 0 ? val.dataValues.img : QIniuCdn + '/' + val.dataValues.img,
         other_user_name: val.dataValues.other_user_name,
         my,
         already_up: upHash[val.dataValues.id],
