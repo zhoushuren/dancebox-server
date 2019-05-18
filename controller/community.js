@@ -341,7 +341,7 @@ exports.getComment = async function(ctx, next) {
     let upHash = await redis.hgetall('up:' + user_info.user_id + ':' + post.id)
     let list = res.map(val => {
       let my
-      if(val.dataValues.user_id === user_info.user_id) {
+      if(val.dataValues.user_id == user_info.user_id) {
         my = true
       }
       let format_time = formarTime(val.created_at)
