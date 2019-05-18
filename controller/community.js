@@ -534,7 +534,6 @@ exports.report = async function(ctx) {
 
 exports.count = async function(ctx) {
   let user_info = await getUserInfoBySession(ctx)
-  console.log(user_info)
   if(!user_info.user_id) {
     return //没权限
   }

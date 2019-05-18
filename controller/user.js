@@ -128,7 +128,7 @@ async function setSession(session, user_id, nick_name, avatar) {
   if (oldSession) {
     await delSession(oldSession)
   }
-  return await redis.multi().hmset('session:' + session, sessionUserHash).exec()
+  return await redis.multi().hmset('session:' + session, sessionUserHash).set('us:' + user_id,session ).exec()
 }
 async function getSession(user_id) {
   return await redis.get('us:' + user_id)
