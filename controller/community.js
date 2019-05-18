@@ -270,9 +270,8 @@ exports.addComment = async function(ctx, next) {
 
   if(img) {
     imgName = img.split('/').pop()
+    qiniu.uploadQiniu(imgName)
   }
-
-  qiniu.uploadQiniu(imgName)
 
   await Comment.create({
     post_id,
