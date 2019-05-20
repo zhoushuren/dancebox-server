@@ -5,6 +5,7 @@ const User = require('../model/User')
 const AuthData = require('../model/AuthData')
 const redis = require('../redis')
 const randomstring = require('randomstring')
+const {getUserInfoBySession} = require('../services/authService')
 const appid = 'wx792ead777e9681e6'
 const appSecret = '37dfd9ca4d64c9ba4d848141061ca0de'
 
@@ -67,6 +68,14 @@ exports.login = async function(ctx) {
   }
   await setSession(session, result.dataValues.user_id, data.nickName,  data.avatarUrl)
   ctx.body = {session_token: session}
+}
+
+exports.getUserInfo = async function(ctx) {
+  let user_info = await getUserInfoBySession(ctx)
+  ctx.body = {
+    success: true,
+    user_info
+  }
 }
 
 exports.list = async function(ctx) {

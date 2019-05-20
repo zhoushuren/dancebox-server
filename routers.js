@@ -93,6 +93,7 @@ router.get('/get_city', activityAPI.getCity)
 
 router.post('/session_key', user.sessionKey)
 router.post('/login', user.login)
+router.get('/user_info', user.getUserInfo)
 
 router.get('/activity/list', activityAPI.list)
 
