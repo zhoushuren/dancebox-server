@@ -418,6 +418,7 @@ exports.up = async function(ctx, next) {
     console.log(already_up)
     if(already_up === 'true') {
       await redis.del('up:' +user_id + ':' + post.id)
+      await comment.decrement('up')
       ctx.body = {
         success: true,
         count: false
