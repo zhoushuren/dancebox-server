@@ -492,7 +492,7 @@ exports.getMessage = async function(ctx, next) {
     if(val.type === 'up') {
       notice = val.from_user_name + ' 赞了你'
     }
-    let format_time = formarTime(val.send_time)
+    let format_time = formarTime(Date(val.send_time))
     return {
       notice,
       _id: val._id,
