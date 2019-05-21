@@ -283,8 +283,9 @@ exports.addComment = async function(ctx, next) {
     img: imgName,
     other_user_name
   })
-  await post.increment('comment')
-
+  if(!parent_id) {
+      await post.increment('comment')
+  }
   setMessage({
     to_user_id: message_to_user_id,
     from_user_info: user_info,
@@ -414,7 +415,7 @@ exports.up = async function(ctx, next) {
     }
 
     let [already_up] = await redis.hmget('up:' +user_id + ':' + post.id,  id)
-
+    console.log(already_up)
     if(already_up === 'true') {
       await redis.del('up:' +user_id + ':' + post.id)
       ctx.body = {
@@ -438,7 +439,6 @@ exports.up = async function(ctx, next) {
       count: true
     }
   }
-
 }
 
 exports.getMessage = async function(ctx, next) {
