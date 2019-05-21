@@ -25,6 +25,9 @@ const community_comment = sequelize.define('community_message', {
     },
     content: {
       type: Sequelize.STRING
+    },
+    send_time: {
+      type: Sequelize.NUMBER
     }
   },
   {

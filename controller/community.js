@@ -292,7 +292,8 @@ exports.addComment = async function(ctx, next) {
     from_content: post.title.substr(0,16),
     content: content,
     type: 'comment',
-    _id: post_id
+    _id: post_id,
+      send_time: Date.now()
   })
 
   ctx.body = {
@@ -433,7 +434,8 @@ exports.up = async function(ctx, next) {
       from_content: comment.content.substr(0,16),
       content: '',
       type: 'up',
-      _id: id
+      _id: id,
+      send_time: Date.now()
     })
     ctx.body = {
       success: true,
@@ -467,6 +469,7 @@ exports.getMessage = async function(ctx, next) {
           from_user_id: obj.from_user_info.user_id,
           from_content: obj.from_content,
           content: obj.content,
+          send_time: obj.send_time,
         }
       })
 
@@ -489,7 +492,7 @@ exports.getMessage = async function(ctx, next) {
     if(val.type === 'up') {
       notice = val.from_user_name + ' 赞了你'
     }
-    let format_time = formarTime(val.created_at)
+    let format_time = formarTime(val.send_time)
     return {
       notice,
       _id: val._id,
