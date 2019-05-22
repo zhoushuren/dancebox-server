@@ -273,7 +273,7 @@ exports.addComment = async function(ctx, next) {
     qiniu.uploadQiniu(imgName)
   }
 
-  await Comment.create({
+  let commentObj = await Comment.create({
     post_id,
     parent_id,
     content,
@@ -297,7 +297,8 @@ exports.addComment = async function(ctx, next) {
   })
 
   ctx.body = {
-    success: true
+    success: true,
+    data: commentObj
   }
 }
 
