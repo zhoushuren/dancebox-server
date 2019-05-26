@@ -273,7 +273,7 @@ exports.addComment = async function(ctx, next) {
     qiniu.uploadQiniu(imgName)
   }
 
-  await Comment.create({
+  let commentObj = await Comment.create({
     post_id,
     parent_id,
     content,
@@ -297,7 +297,8 @@ exports.addComment = async function(ctx, next) {
   })
 
   ctx.body = {
-    success: true
+    success: true,
+    data: commentObj
   }
 }
 
@@ -418,7 +419,7 @@ exports.up = async function(ctx, next) {
     let [already_up] = await redis.hmget('up:' +user_id + ':' + post.id,  id)
     console.log(already_up)
     if(already_up === 'true') {
-      await redis.del('up:' +user_id + ':' + post.id)
+      await redis.hmset('up:' +user_id + ':' + post.id, id, 'false')
       await comment.decrement('up')
       ctx.body = {
         success: true,
