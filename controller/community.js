@@ -478,7 +478,7 @@ exports.getMessage = async function(ctx, next) {
           from_user_avatar: obj.from_user_info.avatar,
           from_user_id: obj.from_user_info.user_id,
           from_content: obj.from_content,
-          content: obj.content,
+          content: obj.content ? obj.content.substr(0,20) : obj.content,
           send_time: obj.send_time,
         }
       })
