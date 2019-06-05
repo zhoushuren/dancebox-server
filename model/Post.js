@@ -34,6 +34,9 @@ const community_post = sequelize.define('community_post', {
     },
     recommend: {
       type: Sequelize.NUMBER
+    },
+    sort: {
+      type: Sequelize.NUMBER
     }
   },
   {

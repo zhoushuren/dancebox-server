@@ -173,7 +173,7 @@ exports.getPostList = async function (ctx, next) {
   if(updated_at != undefined) {
     where.updated_at =  {[Op.lt]: updated_at}
   }
-  let data = await Post.findAll({where,order: [['updated_at', 'desc']],attributes:['user_avatar','id','topic_id', 'topic_name', 'title', 'up', 'comment', 'user_name', 'created_at', 'updated_at'],limit: 20})
+  let data = await Post.findAll({where,order: [['sort', 'desc'],['updated_at', 'desc']],attributes:['user_avatar','id','topic_id', 'topic_name', 'title', 'up', 'comment', 'user_name', 'created_at', 'updated_at'],limit: 20})
 
   let list = data.map( val => {
     let format_time = formarTime(val.created_at)
@@ -256,13 +256,14 @@ exports.addComment = async function(ctx, next) {
   if(!parent_id) {
     parent_id = 0
   }
-
+  let from_content = post.title.substr(0,16)
   //小窗口里的对话
   if(reply_other_id) {
     let comment = await Comment.findByPk(reply_other_id)
     if(!comment){
       return //非法
     }
+    from_content = comment.content.substr(0,16)
     other_user_name = comment.user_name
     message_to_user_id = comment.user_id  // 回复的是这个楼，消息发给这个楼
   }
@@ -286,15 +287,17 @@ exports.addComment = async function(ctx, next) {
   if(!parent_id) {
       await post.increment('comment')
   }
-  setMessage({
-    to_user_id: message_to_user_id,
-    from_user_info: user_info,
-    from_content: post.title.substr(0,16),
-    content: content,
-    type: 'comment',
-    _id: post_id,
+  if(user_id != message_to_user_id) {
+    setMessage({
+      to_user_id: message_to_user_id,
+      from_user_info: user_info,
+      from_content: from_content,
+      content: content,
+      type: 'comment',
+      _id: post_id,
       send_time: Date.now()
-  })
+    })
+  }
 
   ctx.body = {
     success: true,
@@ -331,8 +334,8 @@ exports.deleteComment = async function (ctx,next) {
 
 //获取评论
 exports.getComment = async function(ctx, next) {
-  let {post_id,parent_id,last_id} = ctx.query
-  let post = await Post.findByPk(post_id)
+  let {post_id,parent_id,last_id,hot} = ctx.query
+  let post = await Post.findByPk(post_id);
   if(!post) {
     return
   }
@@ -341,6 +344,9 @@ exports.getComment = async function(ctx, next) {
 
   let where = {status: 0,post_id,parent_id: 0}
 
+  if(hot === 'true') {
+    where.up = {[Op.gt]: 10}
+  }
   if(parent_id>0) {
     where.parent_id = parent_id
   }
@@ -429,15 +435,18 @@ exports.up = async function(ctx, next) {
     }
     await comment.increment('up')
     let res = await redis.hmset('up:' +user_id + ':' + post.id,  id, true) //我赞了哪个帖子下面的哪个评论
-    await setMessage({
-      to_user_id: comment.user_id,
-      from_user_info: user_info,
-      from_content: comment.content.substr(0,16),
-      content: '',
-      type: 'up',
-      _id: id,
-      send_time: Date.now()
-    })
+
+    if(user_id != comment.user_id) { //不是自己才会发消息
+      await setMessage({
+        to_user_id: comment.user_id,
+        from_user_info: user_info,
+        from_content: comment.content.substr(0,16),
+        content: '',
+        type: 'up',
+        _id: id,
+        send_time: Date.now()
+      })
+    }
     ctx.body = {
       success: true,
       count: true
@@ -516,12 +525,12 @@ exports.getMessage = async function(ctx, next) {
 
 exports.recommend = async function(ctx) {
   let {updated_at} = ctx.query
-  const where = {status: 0, recommend: 1}
+  const where = {status: 0, recommend: {[Op.gte]: 1}}
 
   if(updated_at != undefined) {
     where.updated_at =  {[Op.lt]: updated_at}
   }
-  let data = await Post.findAll({where,order: [['updated_at', 'desc']],attributes:['content','user_avatar','id','topic_id', 'topic_name', 'title', 'up', 'comment', 'user_name', 'created_at', 'updated_at'],limit: 20})
+  let data = await Post.findAll({where,order: [['recommend', 'desc'],['updated_at', 'desc']],attributes:['content','user_avatar','id','topic_id', 'topic_name', 'title', 'up', 'comment', 'user_name', 'created_at', 'updated_at'],limit: 20})
 
   let list = data.map( val => {
     let format_time = formarTime(val.created_at)
