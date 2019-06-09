@@ -22,6 +22,9 @@ const topic = sequelize.define('community_topic', {
     },
     view_count: {
       type: Sequelize.NUMBER
+    },
+    check: {
+      type: Sequelize.NUMBER
     }
   },
   {

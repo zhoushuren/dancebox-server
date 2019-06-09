@@ -14,7 +14,7 @@ const setMessage = require('../services/message')
 const activityImgURL  = process.env.IMGURL || 'http://127.0.0.1:3007'
 const QIniuCdn = 'http://static.dancebox.cn'
 exports.addTopic = async function(ctx, next) {
-  const {name,banner,status, desc} = ctx.request.body
+  const {name,banner,status, desc,check} = ctx.request.body
   try{
     let imgName = banner.split('/').pop()
     qiniu.uploadQiniu(imgName)
@@ -22,7 +22,8 @@ exports.addTopic = async function(ctx, next) {
       name,
       banner: imgName,
       status,
-      desc
+      desc,
+      check
     })
 
     ctx.body = {
@@ -166,7 +167,14 @@ function formarTime(time) {
 //获取帖子列表
 exports.getPostList = async function (ctx, next) {
   let {updated_at,topic_id} = ctx.query
-  const where = {status: 0}
+
+  let topic = await Topic.findByPk(topic_id)
+
+  const where = {status: {[Op.lte]: 1}} // 默认先发后审， 0和1 都显示
+  if (topic.check === 1 ) {
+      where.status = 1  //先审后模式， 1 才显示
+  }
+
   if(topic_id) {
     where.topic_id = topic_id
   }
