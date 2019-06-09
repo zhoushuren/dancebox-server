@@ -23,13 +23,14 @@ exports.addTopic = async function(ctx, next) {
       banner: imgName,
       status,
       desc,
-      check
+      check: new Number(check)
     })
 
     ctx.body = {
       success: true
     }
   }catch (e) {
+    console.log(e)
     ctx.body = {
       success: false
     }
@@ -64,6 +65,7 @@ exports.getTopic = async function (ctx, next) {
         desc: val.dataValues.desc,
         post_count: val.dataValues.post_count,
         view_count: val.dataValues.view_count,
+        check: val.dataValues.check,
         sort: val.dataValues.sort,
         banner: val.dataValues.banner.indexOf('/activity_img') === 0 ?  activityImgURL + val.dataValues.banner : QIniuCdn + '/' + val.dataValues.banner,
       }

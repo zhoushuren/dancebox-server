@@ -109,7 +109,7 @@ exports.getPostList = async function (ctx, next) {
         where.topic_id = topic_id
     }
 
-    if(select == 1 || select == 0) {
+    if(select == 1 || select == 0 || select == 2) {
         where.status = select
     }
 
