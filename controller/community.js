@@ -102,7 +102,7 @@ exports.addPost = async function(ctx, next) {
     return //没权限
   }
   let user_id = user_info.user_id
-  let {topic_id,title,content,img_list} = ctx.request.body
+  let {topic_id,title,content,img_list, type} = ctx.request.body
 
   let res = await Topic.findByPk(topic_id)
   if(!res && res.status >0 ) {
@@ -129,7 +129,8 @@ exports.addPost = async function(ctx, next) {
     user_name: user_info.nick_name,
     user_avatar: user_info.avatar,
     topic_name: res.name,
-    img_list
+    img_list,
+    type
   })
 
   ctx.body = {
@@ -173,8 +174,8 @@ exports.getPostList = async function (ctx, next) {
   if(updated_at != undefined) {
     where.updated_at =  {[Op.lt]: updated_at}
   }
-  let data = await Post.findAll({where,order: [['sort', 'desc'],['updated_at', 'desc']],attributes:['user_avatar','id','topic_id', 'topic_name', 'title', 'up', 'comment', 'user_name', 'created_at', 'updated_at','status'],limit: 20})
-  console.log(data)
+  let data = await Post.findAll({where,order: [['sort', 'desc'],['updated_at', 'desc']],attributes:['user_avatar','id','topic_id', 'topic_name', 'title', 'up', 'comment', 'user_name', 'created_at', 'updated_at','status','recommend', 'sort','type'],limit: 20})
+  // console.log(data)
     let list = data.map( val => {
     let format_time = formarTime(val.created_at)
     return {
@@ -187,6 +188,9 @@ exports.getPostList = async function (ctx, next) {
         up: val.up,
         comment: val.comment,
         user_name: val.user_name,
+        recommend: val.recommend,
+        sort: val.sort,
+        type: val.type,
         created_at: val.created_at,
         updated_at: val.updated_at,
         format_time: format_time
@@ -531,7 +535,7 @@ exports.recommend = async function(ctx) {
   if(updated_at != undefined) {
     where.updated_at =  {[Op.lt]: updated_at}
   }
-  let data = await Post.findAll({where,order: [['recommend', 'desc'],['updated_at', 'desc']],attributes:['content','user_avatar','id','topic_id', 'topic_name', 'title', 'up', 'comment', 'user_name', 'created_at', 'updated_at'],limit: 20})
+  let data = await Post.findAll({where,order: [['recommend', 'desc'],['updated_at', 'desc']],attributes:['content','user_avatar','id','topic_id', 'topic_name', 'title', 'up', 'comment', 'user_name', 'created_at', 'updated_at','recommend','sort'],limit: 20})
 
   let list = data.map( val => {
     let format_time = formarTime(val.created_at)
@@ -546,6 +550,8 @@ exports.recommend = async function(ctx) {
       user_name: val.user_name,
       created_at: val.created_at,
       updated_at: val.updated_at,
+      recommend: val.recommend,
+      sort: val.sort,
       format_time: format_time
     }
   })

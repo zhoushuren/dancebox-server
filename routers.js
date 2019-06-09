@@ -81,6 +81,7 @@ router.post('/admin/community/status', authenticated(admin.setStatus))
 router.post('/admin/community/up', authenticated(admin.setUp))
 router.get('/admin/community/comment_list', authenticated(admin.getCommentlist))
 router.post('/admin/community/setup', authenticated(admin.setUp))
+router.post('/admin/community/set_recommend', authenticated(admin.setRecommend))
 
 //静态资源
 staticRouter.post('/img', file.img)

@@ -198,3 +198,15 @@ exports.setUp = async function(ctx) {
         success: true
     }
 }
+
+exports.setRecommend = async function (ctx) {
+    let {id, recommend} = ctx.request.body
+
+    let post = await Post.findByPk(id)
+
+    await post.update({recommend})
+
+    ctx.body = {
+        success: true
+    }
+}

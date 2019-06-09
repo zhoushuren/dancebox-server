@@ -40,6 +40,9 @@ const community_post = sequelize.define('community_post', {
     },
     status: {
         type: Sequelize.NUMBER
+    },
+    type: {
+        type: Sequelize.NUMBER
     }
   },
   {
