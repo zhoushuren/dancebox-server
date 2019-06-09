@@ -73,15 +73,20 @@ class ActivityService {
 let svs = new ActivityService()
 //小程序
 exports.activity_list = async function(ctx, next) {
-    let {page,city} = ctx.query
+    let {page,city,dance} = ctx.query
     // let result = await getList({status: 0})
     // ctx.body = result
   let where = {
     start_time: {[Op.gte]: new Date()}
   }
-  console.log(city)
+  // console.log(city)
     if(city !== '全国') {
       where.city = city
+    }
+
+    // [Op.substring]
+    if(dance) {
+        where.dance = {[Op.substring]: dance}
     }
 
     let result = await svs.getActivityList(where)
@@ -346,7 +351,7 @@ exports.createTeach = async function(ctx, next) {
 }
 
 exports.getCity =async function(ctx, next) {
-    let res = await Activity.findAll({where: {status: 0}, attributes:['city'], group: [['city']]})
+    let res = await Activity.findAll({where: {status: 0, end_time: {[Op.gte]: new Date()}}, attributes:['city'], group: [['city']]})
     ctx.body = {
         success: true,
         data: res
