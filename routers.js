@@ -76,7 +76,11 @@ router.get('/admin/users', authenticated(user.list))
 
 router.post('/admin/community/topic', authenticated(community.addTopic))
 router.get('/admin/community/topics', authenticated(community.getTopic))
-router.get('/admin/community/post', authenticated(community.getPostList))
+router.get('/admin/community/post', authenticated(admin.getPostList))
+router.post('/admin/community/status', authenticated(admin.setStatus))
+router.post('/admin/community/up', authenticated(admin.setUp))
+router.get('/admin/community/comment_list', authenticated(admin.getCommentlist))
+router.post('/admin/community/setup', authenticated(admin.setUp))
 
 //静态资源
 staticRouter.post('/img', file.img)

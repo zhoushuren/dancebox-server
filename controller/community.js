@@ -173,9 +173,9 @@ exports.getPostList = async function (ctx, next) {
   if(updated_at != undefined) {
     where.updated_at =  {[Op.lt]: updated_at}
   }
-  let data = await Post.findAll({where,order: [['sort', 'desc'],['updated_at', 'desc']],attributes:['user_avatar','id','topic_id', 'topic_name', 'title', 'up', 'comment', 'user_name', 'created_at', 'updated_at'],limit: 20})
-
-  let list = data.map( val => {
+  let data = await Post.findAll({where,order: [['sort', 'desc'],['updated_at', 'desc']],attributes:['user_avatar','id','topic_id', 'topic_name', 'title', 'up', 'comment', 'user_name', 'created_at', 'updated_at','status'],limit: 20})
+  console.log(data)
+    let list = data.map( val => {
     let format_time = formarTime(val.created_at)
     return {
         user_avatar: val.user_avatar,
@@ -183,6 +183,7 @@ exports.getPostList = async function (ctx, next) {
         topic_id: val.topic_id,
         topic_name: val.topic_name,
         title: val.title,
+        status: val.status,
         up: val.up,
         comment: val.comment,
         user_name: val.user_name,
@@ -332,7 +333,7 @@ exports.deleteComment = async function (ctx,next) {
   }
 }
 
-//获取评论
+//获取评论 评论的状态，0 是已发帖未审核 1 是已审核 2 是删除
 exports.getComment = async function(ctx, next) {
   let {post_id,parent_id,last_id,hot} = ctx.query
   let post = await Post.findByPk(post_id);
@@ -342,7 +343,7 @@ exports.getComment = async function(ctx, next) {
 
   let user_info = await getUserInfoBySession(ctx)
 
-  let where = {status: 0,post_id,parent_id: 0}
+  let where = {status: {[Op.lte]: 1 },post_id,parent_id: 0}
 
   if(hot === 'true') {
     where.up = {[Op.gt]: 10}

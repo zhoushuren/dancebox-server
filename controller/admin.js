@@ -3,6 +3,14 @@ const Admin = require('../model/Admin')
 const AdminSession = require('../model/AdminSession')
 const sha256 = require('sha256')
 const randomstring = require("randomstring")
+const Topic = require('../model/Topic')
+const Post = require('../model/Post')
+const moment = require('moment')
+const Comment = require('../model/Comment')
+const Message = require('../model/Message')
+const Report = require('../model/Report')
+
+const QIniuCdn = 'http://static.dancebox.cn'
 
 exports.login = async function (ctx) {
     let { email, password} = ctx.request.body
@@ -90,5 +98,103 @@ exports.getUserInfo = async function (ctx) {
     ctx.body = {
         success: true,
         user_info: admin
+    }
+}
+
+//获取帖子列表
+exports.getPostList = async function (ctx, next) {
+    let {updated_at,topic_id,select} = ctx.query
+    const where = {}
+    if(topic_id) {
+        where.topic_id = topic_id
+    }
+
+    if(select == 1 || select == 0) {
+        where.status = select
+    }
+
+    if(updated_at != undefined) {
+        where.updated_at =  {[Op.lt]: updated_at}
+    }
+    let data = await Post.findAll({where,order: [['sort', 'desc'],['updated_at', 'desc']],limit: 20})
+    ctx.body = {
+        success: true,
+        list: data
+    }
+}
+
+exports.setStatus = async function (ctx, next) {
+    let {status, type, id} = ctx.request.body
+
+    if(type === 'post') {
+        let post = await Post.findByPk(id)
+
+        await post.update({status})
+    }
+
+    if(type === 'comment') {
+        let comment = await Comment.findByPk(id)
+
+        await comment.update({status})
+    }
+
+    ctx.body = {
+        success: true
+    }
+}
+
+exports.getCommentlist = async function (ctx) {
+    let {updated_at,topic_id,select} = ctx.query
+    let where = {}
+
+    if(select == 1 || select == 0 || select == 2) {
+        where.status = select
+    }
+
+    let res = await Comment.findAll({where ,limit: 20, order: [['id', 'desc']]})
+
+    let list = res.map((val) => {
+        let _img
+        if( val.dataValues.img) {
+            _img = val.dataValues.img.indexOf('http') === 0 ? val.dataValues.img : QIniuCdn + '/' + val.dataValues.img
+        }
+
+        return {
+            id: val.dataValues.id,
+            post_id: val.dataValues.post_id,
+            content: val.dataValues.content,
+            user_name: val.dataValues.user_name,
+            user_avatar: val.dataValues.user_avatar,
+            status: val.dataValues.status,
+            parent_id: val.dataValues.parent_id,
+            user_id: val.dataValues.user_id,
+            up: val.dataValues.up,
+            reply: val.dataValues.reply,
+            img: _img,
+            other_user_name: val.dataValues.other_user_name,
+            created_at: val.dataValues.created_at,
+        }
+    })
+    ctx.body = {
+        success: true,
+        list: list
+    }
+}
+
+exports.setUp = async function(ctx) {
+    let { sort, id, type} = ctx.request.body
+
+    if(type === 'post') {
+        let post = await Post.findByPk(id)
+        await post.update({sort: sort})
+    }
+
+    if(type === 'topic') {
+        let topic = await Topic.findByPk(id)
+        await topic.update({sort: sort})
+    }
+
+    ctx.body = {
+        success: true
     }
 }

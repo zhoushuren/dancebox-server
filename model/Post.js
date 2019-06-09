@@ -37,6 +37,9 @@ const community_post = sequelize.define('community_post', {
     },
     sort: {
       type: Sequelize.NUMBER
+    },
+    status: {
+        type: Sequelize.NUMBER
     }
   },
   {
