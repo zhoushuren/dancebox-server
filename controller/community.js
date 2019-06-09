@@ -219,7 +219,7 @@ exports.getPost = async function(ctx) {
   }
   const where = {status: 0,id: post_id}
 
-  let data = await Post.findOne({where,attributes:['img_list','user_avatar','id','topic_id','content', 'topic_name', 'title', 'up', 'comment', 'user_name', 'created_at']})
+  let data = await Post.findOne({where,attributes:['img_list','user_avatar','id','topic_id','content', 'topic_name', 'title', 'up', 'comment', 'user_name', 'created_at','type', 'sort']})
 
   if(data.img_list) {
     try{

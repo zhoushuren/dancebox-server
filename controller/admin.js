@@ -5,11 +5,12 @@ const sha256 = require('sha256')
 const randomstring = require("randomstring")
 const Topic = require('../model/Topic')
 const Post = require('../model/Post')
+const AuthData = require('../model/AuthData')
 const moment = require('moment')
 const Comment = require('../model/Comment')
 const Message = require('../model/Message')
 const Report = require('../model/Report')
-
+const rp = require('request-promise')
 const QIniuCdn = 'http://static.dancebox.cn'
 
 exports.login = async function (ctx) {
@@ -130,6 +131,43 @@ exports.setStatus = async function (ctx, next) {
         let post = await Post.findByPk(id)
 
         await post.update({status})
+
+
+        //帖子审核成功 发消息
+        if(status === 1) {
+            const access_token = await getAccessToken()
+            let uri = ' https://api.weixin.qq.com/cgi-bin/message/wxopen/template/send?access_token=' + access_token
+
+            let authdata = await AuthData.findOne({where: {user_id: post.user_id }})
+
+            let result = await rp({
+                uri,
+                json: true,
+                method: 'post',
+                body: {
+                    touser: authdata.open_id,
+                    template_id: 'riltbZQ9C_f0xuutxw60AZjxk_UfwvLIt6q-I5MdU6Q',
+                    page: 'pages/forum/detail?post_id=' + post.id,
+                    form_id: randomstring.generate(16),
+                    data: {
+                        keyword1: {
+                            value: post.title,
+                        },
+                        keyword2: {
+                            value: '成功',
+                        },
+                        keyword3: {
+                            value: post.user_name,
+                        },
+                        keyword4: {
+                            value: post.created_at,
+                        }
+                    }
+                }
+            })
+
+            console.log(result)
+        }
     }
 
     if(type === 'comment') {
@@ -209,4 +247,15 @@ exports.setRecommend = async function (ctx) {
     ctx.body = {
         success: true
     }
+}
+
+function getAccessToken() {
+    return rp(
+        {
+            uri: 'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=wx792ead777e9681e6&secret=37dfd9ca4d64c9ba4d848141061ca0de',
+            json: true
+        }
+    ).then((data) => {
+        return data.access_token
+    })
 }
