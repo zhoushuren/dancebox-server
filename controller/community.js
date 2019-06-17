@@ -105,7 +105,7 @@ exports.addPost = async function(ctx, next) {
     return //没权限
   }
   let user_id = user_info.user_id
-  let {topic_id,title,content,img_list, type} = ctx.request.body
+  let {topic_id,title,content,img_list, type, form_id} = ctx.request.body
 
   let res = await Topic.findByPk(topic_id)
   if(!res && res.status >0 ) {
@@ -133,7 +133,8 @@ exports.addPost = async function(ctx, next) {
     user_avatar: user_info.avatar,
     topic_name: res.name,
     img_list,
-    type
+    type,
+    form_id
   })
 
   ctx.body = {
@@ -246,7 +247,7 @@ exports.getPost = async function(ctx) {
 }
 //添加评论
 exports.addComment = async function(ctx, next) {
-  let {content,post_id,parent_id,img, reply_other_id, form_id} = ctx.request.body
+  let {content,post_id,parent_id,img, reply_other_id } = ctx.request.body
   let user_info = await getUserInfoBySession(ctx)
   if(!user_info.user_id) {
     return //没权限
@@ -299,8 +300,7 @@ exports.addComment = async function(ctx, next) {
     user_avatar: user_info.avatar,
     user_name: user_info.nick_name,
     img: imgName,
-    other_user_name,
-      form_id
+    other_user_name
   })
   if(!parent_id) {
       await post.increment('comment')
