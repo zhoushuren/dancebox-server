@@ -209,7 +209,8 @@ exports.getPostList = async function (ctx, next) {
   })
   ctx.body = {
     success: true,
-    list: list
+    list: list,
+    check: topic.check
   }
 }
 //获取帖子详情
