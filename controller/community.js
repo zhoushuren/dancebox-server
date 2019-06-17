@@ -217,10 +217,12 @@ exports.getPost = async function(ctx) {
   if(!post_id) {
     return
   }
-  const where = {status: 0,id: post_id}
+  const where = {status: {[Op.lte]: 1}, id: post_id}
 
   let data = await Post.findOne({where,attributes:['img_list','user_avatar','id','topic_id','content', 'topic_name', 'title', 'up', 'comment', 'user_name', 'created_at','type', 'sort']})
-
+  if(data === null) {
+    return
+  }
   if(data.img_list) {
     try{
       data.img_list = JSON.parse(data.img_list).map((img)=> {

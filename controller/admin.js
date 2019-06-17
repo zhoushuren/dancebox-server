@@ -40,8 +40,6 @@ exports.login = async function (ctx) {
     }
     let session_token =  randomstring.generate(32)
 
-
-
     try{
         // console.log('------')
         // console.log(session_token)
