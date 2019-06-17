@@ -43,6 +43,9 @@ const community_post = sequelize.define('community_post', {
     },
     type: {
         type: Sequelize.NUMBER
+    },
+    form_id: {
+        type: Sequelize.STRING
     }
   },
   {

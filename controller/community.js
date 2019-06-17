@@ -246,7 +246,7 @@ exports.getPost = async function(ctx) {
 }
 //添加评论
 exports.addComment = async function(ctx, next) {
-  let {content,post_id,parent_id,img, reply_other_id} = ctx.request.body
+  let {content,post_id,parent_id,img, reply_other_id, form_id} = ctx.request.body
   let user_info = await getUserInfoBySession(ctx)
   if(!user_info.user_id) {
     return //没权限
@@ -299,7 +299,8 @@ exports.addComment = async function(ctx, next) {
     user_avatar: user_info.avatar,
     user_name: user_info.nick_name,
     img: imgName,
-    other_user_name
+    other_user_name,
+      form_id
   })
   if(!parent_id) {
       await post.increment('comment')
