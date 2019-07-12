@@ -22,7 +22,7 @@
       "DB_HOST": "rm-uf66kc7s62ubby380.mysql.rds.aliyuncs.com",
       "DB_NAME": "dancebox",
       "DB_USER": "wx_dancebox",
-      "DB_PASS": "Weixin@Dancebox",
+      "DB_PASS": "Dancebox!@#",
       "IMGURL": "https://wx.dancebox.cn"
     },
     "env_dev": {
