@@ -19,9 +19,10 @@
     "restart_delay": 60,                      // 异常重启情况下，延时重启时间
     "env": {
       "NODE_ENV": "production",
+      "DB_HOST": "rm-uf66kc7s62ubby380.mysql.rds.aliyuncs.com",
       "DB_NAME": "dancebox",
-      "DB_USER": "root",
-      "DB_PASS": "Dancebox123$%^",
+      "DB_USER": "wx_dancebox",
+      "DB_PASS": "Dancebox!@#",
       "IMGURL": "https://wx.dancebox.cn"
     },
     "env_dev": {
