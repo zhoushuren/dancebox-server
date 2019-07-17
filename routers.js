@@ -6,8 +6,13 @@ const file = require('./controller/file')
 const personal = require('./controller/personal')
 const user = require('./controller/user')
 const community = require('./controller/community')
+const referee = require('./controller/referee')
+const competition = require('./controller/competition')
+const project = require('./controller/project')
+const grade = require('./controller/grade')
 
 const authenticated = require('./middleware/authenticated')
+const refereeAuth = require('./middleware/refereeAuth')
 
 const router = new Router({
     prefix: '/api'
@@ -43,7 +48,6 @@ function wrap(cb) {
         }
     }
 }
-
 
 router.post('/admin/login', admin.login)
 
@@ -123,6 +127,31 @@ router.get('/community/count',community.count)
 
 router.get('/community/message',community.getMessage)
 router.get('/test_message',community.testMessage)
+
+// 裁判客户端
+router.post('/referee/login', referee.login)
+router.get('/referee/competition', refereeAuth(competition.getCompetition))
+router.get('/referee/grade', refereeAuth(grade.saveGrade))
+
+// 裁判后台
+router.post('/referee', authenticated(referee.createRefereeAccount))
+router.get('/referee', authenticated(referee.getRefereeAccount))
+
+// 赛制
+router.post('/competition', authenticated(competition.addCompetition))
+router.delete('/competition/:activity_id/:competition_id', authenticated(competition.deleteCompetition))
+
+// 项目
+router.post('/project', authenticated(project.addProject))
+router.get('/project', authenticated(project.getAllProject))
+router.get('/project/:project_id', authenticated(project.getProjectById))
+router.put('/project/:project_id', authenticated(project.updateProjectById))
+router.delete('/project/:project_id', authenticated(project.deleteProjectById))
+
+// 评分模版
+router.post('/grade', authenticated(grade.addTemplate))
+router.get('/grade', authenticated(grade.getAllTemplate))
+router.delete('/grade/:template_id', authenticated(grade.deleteTemplateById))
 
 module.exports = {
   staticRouter,
