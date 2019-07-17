@@ -205,6 +205,29 @@ exports.getCompetition = async function (ctx, next) {
     }
 }
 
+exports.getAllCompetition = async function (ctx, next) {
+    let { activity_id } = ctx.query
+
+    let competitions = await Competition.findAll({
+        attributes: [
+            'id', 'name',
+            'win_count', 'referee_count',
+            'project_id',
+            'grade_template_id', 'grade_template_name'
+        ],
+        where: {
+            status: CONSTS.STATUS.ACTIVE,
+            activity_id
+        }
+    })
+
+    return ctx.body = {
+        success: true,
+        competitions
+    }
+
+}
+
 exports.addCompetition = async function (ctx, next) {
     let admin_user_id = ctx.admin_user_id
     let {
@@ -317,6 +340,125 @@ exports.addCompetition = async function (ctx, next) {
 
 }
 
+exports.updateCompetition = async function (ctx, next) {
+    let admin_user_id = ctx.admin_user_id
+    let competition_id = ctx.params.competiton_id
+    let {
+        activity_id, project_id, name,
+        win_count, referee_count,
+        template_id, groups
+    } = ctx.request.body
+    win_count = +win_count
+    referee_count = +referee_count
+    if(isNaN(win_count) || isNaN(referee_count) || win_count < 1 || referee_count < 1) {
+        return ctx.body = {
+            success: false,
+            message: '晋级人数或裁判人数至少为1人'
+        }
+    }
+
+    let [activity, project, template, criterias] = await Promise.all([
+        Activity.findOne({
+            attributes: ['id', 'name'],
+            where: {
+                // status: CONSTS.STATUS.ACTIVE,
+                id: activity_id
+            }
+        }),
+        Project.findOne({
+            attributes: ['id', 'name'],
+            where: {
+                // status: CONSTS.STATUS.ACTIVE,
+                id: project_id
+            }
+        }),
+        GradeTemplate.findOne({
+            attributes: ['id', 'name', 'scale_type', 'rank_type'],
+            where: {
+                // status: CONSTS.STATUS.ACTIVE,
+                id: template_id
+            }
+        }),
+        GradeTemplateCriteria.findAll({
+            attributes: ['id', 'name', 'weight'],
+            where: {
+                status: CONSTS.STATUS.ACTIVE,
+                grade_template_id: template_id
+            }
+        })
+    ])
+
+    if(!activity) {
+        return ctx.body = {
+            success: false,
+            message: '活动不存在'
+        }
+    }
+
+    if(!project) {
+        return ctx.body = {
+            success: false,
+            message: '项目不存在'
+        }
+    }
+
+    if(!template || !criterias || !criterias.length) {
+        return ctx.body = {
+            success: false,
+            message: '评分模版不存在'
+        }
+    }
+
+    await Sequelize.transaction((t) => {
+        let competiton = {
+            name, activity_id, project_id, win_count, referee_count,
+            grade_template_id: template_id,
+            status: CONSTS.STATUS.ACTIVE,
+            created_at: new Date(),
+            create_userid: admin_user_id
+        }
+        return Competition.update(competiton, {
+            where: {
+                status: CONSTS.STATUS.ACTIVE,
+                id: competition_id
+            }
+        }, {transaction: t}).then((c) => {
+            let competition_groups = groups.map((g) => {
+                return {
+                    name: g.name,
+                    activity_id, project_id,
+                    competition_id,
+                    interval: JSON.stringify({
+                        min: g.min, max: g.max
+                    }),
+                    status: CONSTS.STATUS.ACTIVE,
+                    created_at: new Date(),
+                    create_userid: admin_user_id
+                }
+            })
+            return CompetitionGroup.update({
+                status: CONSTS.STATUS.DELETED,
+                updated_at: new Date(),
+                update_userid: admin_user_id
+            }, {
+                where: {
+                    status: CONSTS.STATUS.ACTIVE,
+                    activity_id, project_id,
+                    competition_id
+                }
+            }, {transaction: t}).then(() => {
+                return CompetitionGroup.bulkCreate(competition_groups, {transaction: t})
+            })
+
+        })
+    })
+
+    return ctx.body = {
+        success: true
+    }
+
+}
+
 exports.deleteCompetition = async function (ctx, next) {
     let admin_user_id = ctx.admin_user_id
     let {
@@ -349,16 +491,8 @@ exports.deleteCompetition = async function (ctx, next) {
         ])
     })
 
-    if(competition_id == -1) {
-        return ctx.body = {
-            success: false,
-            message: '删除失败'
-        }
-    } else {
-        return ctx.body = {
-            success: true,
-            competition_id
-        }
+    return ctx.body = {
+        success: true
     }
 
 }

@@ -40,14 +40,6 @@ const competition = sequelize.define('competition', {
             defaultValue: null,
             field: "project_id"
         },
-        project_name: {
-            type: Sequelize.STRING(255),
-            allowNull: false,
-            autoIncrement: false,
-            primaryKey: false,
-            defaultValue: null,
-            field: "project_name"
-        },
         win_number: {
             type: Sequelize.INTEGER(10),
             allowNull: false,
@@ -71,6 +63,14 @@ const competition = sequelize.define('competition', {
             primaryKey: false,
             defaultValue: null,
             field: "grade_template_id"
+        },
+        grade_template_name: {
+            type: Sequelize.STRING(255),
+            allowNull: false,
+            autoIncrement: false,
+            primaryKey: false,
+            defaultValue: null,
+            field: "grade_template_name"
         },
         status: {
             type: Sequelize.INTEGER(4),

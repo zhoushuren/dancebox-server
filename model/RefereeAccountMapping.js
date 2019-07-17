@@ -16,6 +16,14 @@ const referee_account_mapping = sequelize.define('referee_account_mapping', {
             primaryKey: true,
             field: "id"
         },
+        referee_account_id: {
+            type: Sequelize.INTEGER(10),
+            allowNull: false,
+            autoIncrement: false,
+            primaryKey: false,
+            defaultValue: null,
+            field: "referee_account_id"
+        },
         referee_id: {
             type: Sequelize.INTEGER(10),
             allowNull: false,
@@ -23,6 +31,14 @@ const referee_account_mapping = sequelize.define('referee_account_mapping', {
             primaryKey: false,
             defaultValue: null,
             field: "referee_id"
+        },
+        referee_name: {
+            type: Sequelize.STRING(255),
+            allowNull: false,
+            autoIncrement: false,
+            primaryKey: false,
+            defaultValue: null,
+            field: "referee_name"
         },
         activity_id: {
             type: Sequelize.INTEGER(10),
@@ -47,6 +63,14 @@ const referee_account_mapping = sequelize.define('referee_account_mapping', {
             primaryKey: false,
             defaultValue: null,
             field: "group_id"
+        },
+        group_name: {
+            type: Sequelize.STRING(255),
+            allowNull: false,
+            autoIncrement: false,
+            primaryKey: false,
+            defaultValue: null,
+            field: "group_name"
         },
         status: {
             type: Sequelize.INTEGER(4),

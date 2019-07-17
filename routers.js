@@ -10,6 +10,7 @@ const referee = require('./controller/referee')
 const competition = require('./controller/competition')
 const project = require('./controller/project')
 const grade = require('./controller/grade')
+const player = require('./controller/player')
 
 const authenticated = require('./middleware/authenticated')
 const refereeAuth = require('./middleware/refereeAuth')
@@ -134,12 +135,24 @@ router.get('/referee/competition', refereeAuth(competition.getCompetition))
 router.get('/referee/grade', refereeAuth(grade.saveGrade))
 
 // 裁判后台
-router.post('/referee', authenticated(referee.createRefereeAccount))
-router.get('/referee', authenticated(referee.getRefereeAccount))
+router.post('/referee/account', authenticated(referee.addRefereeAccount))
+router.get('/referee/account', authenticated(referee.getRefereeAccount))
+router.get('/referee', authenticated(referee.getAllReferee))
+router.post('/referee', authenticated(referee.addReferee))
+router.put('/referee/:referee_id', authenticated(referee.updateReferee))
+router.get('/referee/:referee_id', authenticated(referee.getRefereeById))
+// router.delete('/referee/:referee_id', authenticated(referee.deleteRefereeById))
 
 // 赛制
+router.get('/competition', authenticated(competition.getAllCompetition))
 router.post('/competition', authenticated(competition.addCompetition))
+router.put('/competition/:competition_id', authenticated(competition.updateCompetition))
 router.delete('/competition/:activity_id/:competition_id', authenticated(competition.deleteCompetition))
+
+// 选手管理
+router.get('/player', authenticated(player.getAllPlayer))
+router.post('/player', authenticated(player.addPlayer))
+router.post('/player/check', authenticated(player.checkPlayerNumber))
 
 // 项目
 router.post('/project', authenticated(project.addProject))

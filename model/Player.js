@@ -48,6 +48,46 @@ const player = sequelize.define('player', {
             defaultValue: null,
             field: "project_id"
         },
+        project_name: {
+            type: Sequelize.STRING(255),
+            allowNull: false,
+            autoIncrement: false,
+            primaryKey: false,
+            defaultValue: null,
+            field: "project_name"
+        },
+        competition_id: {
+            type: Sequelize.INTEGER(10),
+            allowNull: false,
+            autoIncrement: false,
+            primaryKey: false,
+            defaultValue: null,
+            field: "competition_id"
+        },
+        competition_name: {
+            type: Sequelize.STRING(255),
+            allowNull: false,
+            autoIncrement: false,
+            primaryKey: false,
+            defaultValue: null,
+            field: "competition_name"
+        },
+        group_id: {
+            type: Sequelize.INTEGER(10),
+            allowNull: true,
+            autoIncrement: false,
+            primaryKey: false,
+            defaultValue: null,
+            field: "group_id"
+        },
+        group_name: {
+            type: Sequelize.STRING(255),
+            allowNull: true,
+            autoIncrement: false,
+            primaryKey: false,
+            defaultValue: null,
+            field: "group_name"
+        },
         status: {
             type: Sequelize.INTEGER(4),
             allowNull: false,

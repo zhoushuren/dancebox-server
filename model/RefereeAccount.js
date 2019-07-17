@@ -24,6 +24,14 @@ const referee_account = sequelize.define('referee_account', {
             defaultValue: null,
             field: "name"
         },
+        avatar: {
+            type: Sequelize.STRING(255),
+            allowNull: false,
+            autoIncrement: false,
+            primaryKey: false,
+            defaultValue: null,
+            field: "avatar"
+        },
         algorithm: {
             type: Sequelize.STRING(255),
             allowNull: false,
@@ -55,6 +63,14 @@ const referee_account = sequelize.define('referee_account', {
             primaryKey: false,
             defaultValue: null,
             field: "referee_id"
+        },
+        referee_name: {
+            type: Sequelize.STRING(255),
+            allowNull: false,
+            autoIncrement: false,
+            primaryKey: false,
+            defaultValue: null,
+            field: "referee_name"
         },
         activity_id: {
             type: Sequelize.INTEGER(10),
