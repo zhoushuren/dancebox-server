@@ -496,3 +496,41 @@ exports.deleteCompetition = async function (ctx, next) {
     }
 
 }
+
+exports.getAllCompetitionGroups = async function (ctx, next) {
+    let competition_id = ctx.params.competiton_id
+
+    let [competition, groups] = await Promise.all([
+        Competition.findOne({
+            attributes: [
+                'id', 'name'
+            ],
+            where: {
+                status: CONSTS.STATUS.ACTIVE,
+                id: competition_id
+            }
+        }),
+        CompetitionGroup.findAll({
+            attributes: [
+                'id', 'name'
+            ],
+            where: {
+                status: CONSTS.STATUS.ACTIVE,
+                competition_id
+            }
+        })
+    ])
+
+    if(!competition) {
+        return ctx.body = {
+            success: false,
+            message: '赛制不存在'
+        }
+    }
+
+    return ctx.body = {
+        success: true,
+        groups
+    }
+
+}

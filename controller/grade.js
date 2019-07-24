@@ -31,7 +31,7 @@ exports.saveGrade = async function (ctx, next) {
         }
     }
 
-    let [play_numbers, criteria_ids] = await Promise.all([
+    let [player_numbers, criteria_ids] = await Promise.all([
         score.map((s) => s.player_number),
         (score[0].criterias || []).map((c) => c.id)
     ])
@@ -48,7 +48,7 @@ exports.saveGrade = async function (ctx, next) {
             }
         }),
         Competition.findOne({
-            attributes: ['id', 'grade_template_id', 'project_id'],
+            attributes: ['id', 'grade_template_id', 'project_id', 'project_name'],
             where: {
                 status: CONSTS.STATUS.ACTIVE,
                 activity_id,
@@ -104,7 +104,7 @@ exports.saveGrade = async function (ctx, next) {
         }
     }
 
-    if(play_numbers.length !== players.length) {
+    if(player_numbers.length !== players.length) {
         return ctx.body = {
             success: false,
             message: "号码牌不存在"
@@ -161,7 +161,8 @@ exports.saveGrade = async function (ctx, next) {
             player_id: player_number_obj[s.player_number],
             number: s.player_number,
             activity_id, competiton_id, group_id,
-            project_id: referee_group.project_id,
+            project_id: competition.project_id,
+            project_name: competition.project_name,
             scale_type: template.scale_type,
             rank_type: template.rank_type,
             status: CONSTS.STATUS.ACTIVE,
@@ -175,6 +176,7 @@ exports.saveGrade = async function (ctx, next) {
                 let grade_c = Object.assign({}, grade)
                 grade_c.criteria_id = c.id
                 grade_c.weight = criteria_obj[grade_c.criteria_id]
+                grade_c.score = c.value * 100
                 result.push(grade_c)
             })
         } else fail_player_numbers.push(s.player_number)
@@ -189,7 +191,7 @@ exports.saveGrade = async function (ctx, next) {
                 id: referee_group.id
             }
         }),
-        PlayerGrade.bulkcreate(player_grades)
+        PlayerGrade.bulkCreate(player_grades)
     ])
 
     return ctx.body = {
@@ -316,6 +318,154 @@ exports.addTemplate = async function (ctx, next) {
             success: true,
             template_id
         }
+    }
+
+}
+
+exports.getAllGrades = async function (ctx, next) {
+    let { activity_id, competition_id, group_id } = ctx.query
+
+    let where = {
+        competition_id, activity_id,
+        status: CONSTS.STATUS.ACTIVE
+    };
+    if(+group_id >= 0) where.group_id = group_id;
+
+    let promise_arr = [
+        Activity.findOne({
+            attributes: ['id', 'name'],
+            where: {
+                // status: CONSTS.STATUS.ACTIVE,
+                id: activity_id
+            }
+        }),
+        Competition.findOne({
+            attributes: ['id', 'name', 'win_count'],
+            where: {
+                status: CONSTS.STATUS.ACTIVE,
+                id: competition_id,
+                activity_id
+            }
+        })]
+    if(where.group_id) {
+        promise_arr.push(CompetitionGroup.findOne({
+            attributes: ['id', 'name'],
+            where: {
+                status: CONSTS.STATUS.ACTIVE,
+                competition_id,
+                activity_id
+            }
+        }))
+    }
+
+    let [activity, competition, group] = await Promise.all(promise_arr)
+
+    if(!activity) {
+        return ctx.body = {
+            success: false,
+            message: '活动不存在'
+        }
+    }
+    if(!competition) {
+        return ctx.body = {
+            success: false,
+            message: '赛制不存在'
+        }
+    }
+    if(where.group_id && !group) {
+        return ctx.body = {
+            success: false,
+            message: '赛制下无此分组'
+        }
+    }
+
+    let player_grades = await PlayerGrade.findAll({
+        attributes: [
+            'player_id', 'number',
+            'group_id', 'group_name',
+            'referee_account_id', 'referee_account_name',
+            'criteria_id', 'criteria_name',
+            'score', 'weight', 'scale_type', 'bank_type'
+        ],
+        where,
+        order: [['competition_id', 'asc'], ['group_id', 'asc'], ['number', 'desc']]
+    });
+
+    if(!player_grades.length) {
+        return ctx.body = {
+            success: true,
+            player_grades: []
+        }
+    }
+
+    let player_grades_criterias_obj = player_grades.reduce((result, pg) => {
+        let key_name = pg.player_id + pg.referee_account_id
+        if(!result[key_name]) {
+            result[key_name] = {
+                player_id: pg.player_id,
+                number: pg.number,
+                group_id: pg.group_id,
+                group_name: pg.group_name,
+                scale_type: pg.scale_type,
+                bank_type: pg.bank_type,
+                referee_account_id: pg.referee_account_id,
+                referee_account_name: pg.referee_account_name,
+                criterias: [{
+                    criteria_id: pg.criteria_id,
+                    criteria_name: pg.criteria_name,
+                    score: pg.score,
+                    weight: pg.weight
+                }]
+            }
+        } else {
+            result[key_name].criterias.push({
+                criteria_id: pg.criteria_id,
+                criteria_name: pg.criteria_name,
+                score: pg.score,
+                weight: pg.weight
+            })
+        }
+        return result
+    }, {})
+
+    let player_grades_obj = Object.keys(player_grades_criterias_obj)
+        .reduce((result, key_name) => {
+            let grade = player_grades_criterias_obj[key_name]
+            grade.score = grade.criterias.reduce((r, c) => {
+                r += (c.score * c.weight / 100)
+                return r
+            }, 0)
+            if(!result[grade.player_id]) {
+                result[grade.player_id] = {
+                    player_id: grade.player_id,
+                    number: grade.number,
+                    group_id: grade.group_id,
+                    group_name: grade.group_name,
+                    scale_type: grade.scale_type,
+                    bank_type: grade.bank_type,
+                    referees: [{
+                        id: grade.referee_account_id,
+                        name: grade.referee_account_name,
+                        criterias: grade.criterias
+                    }]
+                }
+            } else {
+                result[grade.player_id].referees.push({
+                    id: grade.referee_account_id,
+                    name: grade.referee_account_name,
+                    criterias: grade.criterias
+                })
+            }
+            return result
+    }, {})
+
+    let rank_player_grades = Object.keys(player_grades_obj)
+        .sort(function (a,b) {
+            return player_grades_obj[b].score - player_grades_obj[a].score
+    })
+    return ctx.body = {
+        success: true,
+        player_grades: rank_player_grades
     }
 
 }

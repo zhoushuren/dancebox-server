@@ -148,10 +148,14 @@ router.get('/competition', authenticated(competition.getAllCompetition))
 router.post('/competition', authenticated(competition.addCompetition))
 router.put('/competition/:competition_id', authenticated(competition.updateCompetition))
 router.delete('/competition/:activity_id/:competition_id', authenticated(competition.deleteCompetition))
+router.get('/competition/group/:competition_id', authenticated(competition.getAllCompetitionGroups))
 
 // 选手管理
 router.get('/player', authenticated(player.getAllPlayer))
 router.post('/player', authenticated(player.addPlayer))
+router.get('/player/:player_id', authenticated(player.getPlayerById))
+router.put('/player/:player_id', authenticated(player.updatePlayerById))
+router.delete('/player/:player_id', authenticated(player.deletePlayerById))
 router.post('/player/check', authenticated(player.checkPlayerNumber))
 
 // 项目
@@ -162,9 +166,11 @@ router.put('/project/:project_id', authenticated(project.updateProjectById))
 router.delete('/project/:project_id', authenticated(project.deleteProjectById))
 
 // 评分模版
-router.post('/grade', authenticated(grade.addTemplate))
-router.get('/grade', authenticated(grade.getAllTemplate))
+router.post('/grade/template', authenticated(grade.addTemplate))
+router.get('/grade/template', authenticated(grade.getAllTemplate))
 router.delete('/grade/:template_id', authenticated(grade.deleteTemplateById))
+router.get('/grade', authenticated(grade.getAllGrades))
+// router.get('/grade/rank', authenticated(grade.getRankGrades))
 
 module.exports = {
   staticRouter,
