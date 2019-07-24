@@ -56,6 +56,14 @@ const referee_account_mapping = sequelize.define('referee_account_mapping', {
             defaultValue: null,
             field: "project_id"
         },
+        competition_id: {
+            type: Sequelize.INTEGER(10),
+            allowNull: false,
+            autoIncrement: false,
+            primaryKey: false,
+            defaultValue: null,
+            field: "competition_id"
+        },
         group_id: {
             type: Sequelize.INTEGER(10),
             allowNull: false,

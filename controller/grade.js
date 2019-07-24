@@ -7,16 +7,20 @@
 
 const GradeTemplate = require('../model/GradeTemplate')
 const GradeTemplateCriteria = require('../model/GradeTemplateCriteria')
+const Competition = require('../model/Competition')
 const CompetitionGroup = require('../model/CompetitionGroup')
 const RefereeMapping = require('../model/RefereeAccountMapping')
 const PlayerGrade = require('../model/PlayerGrade')
 const Player = require('../model/Player')
+const Activity = require('../model/Activity')
 const CONSTS = require('../config/constant')
-const Sequelize = require('sequelize')
+const sequelize = require('../config.js')
 
 exports.saveGrade = async function (ctx, next) {
-    let { activity_id, group_id, competiton_id, score } = ctx.request.body
-    let referee_account_id = ctx.token.referee_account_id
+    let { activity_id, group_id, competition_id, score } = ctx.request.body
+    let {referee_account_id, referee_account_name} = ctx.token
+    // let referee_account_id =1
+    // let referee_account_name = 'boxt'
     if(activity_id !== ctx.token.activity_id) {
         return ctx.body = {
             success: false,
@@ -40,26 +44,23 @@ exports.saveGrade = async function (ctx, next) {
         RefereeMapping.findOne({
             attributes: ['id', 'status'],
             where: {
-                status: {
-                    $notIn: [CONSTS.STATUS.DELETED, CONSTS.STATUS.STOPPED]
-                },
-                activity_id, competiton_id, group_id,
-                id: referee_account_id
+                activity_id, competition_id, group_id,
+                referee_account_id
             }
         }),
         Competition.findOne({
-            attributes: ['id', 'grade_template_id', 'project_id', 'project_name'],
+            attributes: ['id', 'name', 'grade_template_id', 'project_id', 'project_name'],
             where: {
                 status: CONSTS.STATUS.ACTIVE,
                 activity_id,
-                id: competiton_id
+                id: competition_id
             }
         }),
         CompetitionGroup.findOne({
-            attributes: ['id'],
+            attributes: ['id', 'name'],
             where: {
                 status: CONSTS.STATUS.ACTIVE,
-                activity_id, competiton_id,
+                activity_id, competition_id,
                 id: group_id
             }
         }),
@@ -70,15 +71,22 @@ exports.saveGrade = async function (ctx, next) {
             where: {
                 status: CONSTS.STATUS.ACTIVE,
                 number: player_numbers,
-                activity_id ,competiton_id, group_id
+                activity_id ,competition_id, group_id
             }
         })
     ])
 
-    if(!referee_group) {
+    if(!referee_group || referee_group.status == CONSTS.STATUS.DELETED) {
         return ctx.body = {
             success: false,
             message: "无此分组权限"
+        }
+    }
+
+    if(referee_group.status == CONSTS.STATUS.SUBMITTED) {
+        return ctx.body = {
+            success: false,
+            message: "已提交，不可再次提交"
         }
     }
 
@@ -121,12 +129,12 @@ exports.saveGrade = async function (ctx, next) {
         }),
         GradeTemplateCriteria.findAll({
             attributes: [
-                'id', 'weight'
+                'id', 'name', 'weight'
             ],
             where: {
                 status: CONSTS.STATUS.ACTIVE,
                 id: criteria_ids,
-                grade_template_id: template.id
+                grade_template_id: competition.grade_template_id
             }
         })
     ])
@@ -151,7 +159,7 @@ exports.saveGrade = async function (ctx, next) {
             return result
         }, {}),
         criterias.reduce((result, c) => {
-            result[c.id] = c.weight
+            result[c.id] = c
             return result
         }, {})
     ])
@@ -160,9 +168,13 @@ exports.saveGrade = async function (ctx, next) {
         let grade = {
             player_id: player_number_obj[s.player_number],
             number: s.player_number,
-            activity_id, competiton_id, group_id,
+            activity_id, competition_id, group_id,
+            competition_name: competition.name,
             project_id: competition.project_id,
             project_name: competition.project_name,
+            group_name: group.name,
+            referee_account_id,
+            referee_account_name,
             scale_type: template.scale_type,
             rank_type: template.rank_type,
             status: CONSTS.STATUS.ACTIVE,
@@ -175,7 +187,8 @@ exports.saveGrade = async function (ctx, next) {
             s.criterias.map((c) => {
                 let grade_c = Object.assign({}, grade)
                 grade_c.criteria_id = c.id
-                grade_c.weight = criteria_obj[grade_c.criteria_id]
+                grade_c.criteria_name = criteria_obj[grade_c.criteria_id].name
+                grade_c.weight = criteria_obj[grade_c.criteria_id].weight
                 grade_c.score = c.value * 100
                 result.push(grade_c)
             })
@@ -183,16 +196,18 @@ exports.saveGrade = async function (ctx, next) {
         return result
     }, [])
 
-    await Promise.all([
-        RefereeMapping.update({
-            status: CONSTS.STATUS.SUBMITTED
-        }, {
-            where: {
-                id: referee_group.id
-            }
-        }),
-        PlayerGrade.bulkCreate(player_grades)
-    ])
+    await sequelize.transaction((t) => {
+        return PlayerGrade.bulkCreate(player_grades, {transaction: t})
+            .then(() => {
+                return RefereeMapping.update({
+                    status: CONSTS.STATUS.SUBMITTED
+                }, {
+                    where: {
+                        id: referee_group.id
+                    }
+                }, {transaction: t})
+            })
+    })
 
     return ctx.body = {
         success: true,
@@ -281,7 +296,8 @@ exports.addTemplate = async function (ctx, next) {
     }
 
     let template_id = -1
-    await Sequelize.transaction((t) => {
+
+    await sequelize.transaction((t) => {
         return GradeTemplate.create({
             name, scale_type, rank_type,
             status: CONSTS.STATUS.ACTIVE,
@@ -333,7 +349,7 @@ exports.getAllGrades = async function (ctx, next) {
 
     let promise_arr = [
         Activity.findOne({
-            attributes: ['id', 'name'],
+            attributes: ['id', ['title', 'name']],
             where: {
                 // status: CONSTS.STATUS.ACTIVE,
                 id: activity_id
@@ -385,7 +401,7 @@ exports.getAllGrades = async function (ctx, next) {
             'group_id', 'group_name',
             'referee_account_id', 'referee_account_name',
             'criteria_id', 'criteria_name',
-            'score', 'weight', 'scale_type', 'bank_type'
+            'score', 'weight', 'scale_type', 'rank_type'
         ],
         where,
         order: [['competition_id', 'asc'], ['group_id', 'asc'], ['number', 'desc']]
@@ -411,9 +427,9 @@ exports.getAllGrades = async function (ctx, next) {
                 referee_account_id: pg.referee_account_id,
                 referee_account_name: pg.referee_account_name,
                 criterias: [{
-                    criteria_id: pg.criteria_id,
-                    criteria_name: pg.criteria_name,
-                    score: pg.score,
+                    id: pg.criteria_id,
+                    name: pg.criteria_name,
+                    score: pg.score/100,
                     weight: pg.weight
                 }]
             }
@@ -421,7 +437,7 @@ exports.getAllGrades = async function (ctx, next) {
             result[key_name].criterias.push({
                 criteria_id: pg.criteria_id,
                 criteria_name: pg.criteria_name,
-                score: pg.score,
+                score: pg.score/100,
                 weight: pg.weight
             })
         }
@@ -443,6 +459,7 @@ exports.getAllGrades = async function (ctx, next) {
                     group_name: grade.group_name,
                     scale_type: grade.scale_type,
                     bank_type: grade.bank_type,
+                    total_score: grade.score,
                     referees: [{
                         id: grade.referee_account_id,
                         name: grade.referee_account_name,
@@ -459,9 +476,18 @@ exports.getAllGrades = async function (ctx, next) {
             return result
     }, {})
 
-    let rank_player_grades = Object.keys(player_grades_obj)
-        .sort(function (a,b) {
-            return player_grades_obj[b].score - player_grades_obj[a].score
+    let player_grades_arr = Object.keys(player_grades_obj)
+        .map((key_name) => {
+            return player_grades_obj[key_name]
+    })
+
+    let rank_player_grades = player_grades_arr.sort(function (a,b) {
+            return b.score - a.score
+    })
+
+    rank_player_grades = rank_player_grades.map((r, index) => {
+        r.is_win = competition.win_count > index ? true : false
+        return r
     })
     return ctx.body = {
         success: true,

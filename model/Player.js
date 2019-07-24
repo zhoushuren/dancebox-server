@@ -40,6 +40,14 @@ const player = sequelize.define('player', {
             defaultValue: null,
             field: "number"
         },
+        activity_id: {
+            type: Sequelize.INTEGER(10),
+            allowNull: false,
+            autoIncrement: false,
+            primaryKey: false,
+            defaultValue: null,
+            field: "activity_id"
+        },
         project_id: {
             type: Sequelize.INTEGER(10),
             allowNull: false,

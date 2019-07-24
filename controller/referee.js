@@ -8,10 +8,15 @@ const Referee = require('../model/Referee')
 const RefereeAccount = require('../model/RefereeAccount')
 const RefereeAccountMapping = require('../model/RefereeAccountMapping')
 const RefereeSession = require('../model/RefereeSession')
+const Activity = require('../model/Activity')
+const Project = require('../model/Project')
+const Competition = require('../model/Competition')
+const CompetitionGroup = require('../model/CompetitionGroup')
 const sha256 = require('sha256')
 const randomstring = require('randomstring')
 const CONSTS = require('../config/constant')
 const Sequelize = require('sequelize')
+const sequelize = require('../config.js')
 
 exports.login = async function (ctx) {
     let { username, password } = ctx.request.body
@@ -71,26 +76,111 @@ exports.login = async function (ctx) {
 }
 
 exports.addRefereeAccount = async function (ctx, next) {
-    let { username, password, referee_id, activity_id, project_id, groups } = ctx.request.body
+    let { username, password, referee_id, activity_id, project_id, competition_id, group_ids } = ctx.request.body
+
+    let [activity, project, competition, groups, referee] = await Promise.all([
+        Activity.findOne({
+            attributes: ['id', ['title', 'name']],
+            where: {
+                // status: CONSTS.STATUS.ACTIVE,
+                id: activity_id
+            }
+        }),
+        Project.findOne({
+            attributes: ['id', 'name'],
+            where: {
+                // status: CONSTS.STATUS.ACTIVE,
+                id: project_id
+            }
+        }),
+        Competition.findOne({
+            attributes: ['id', 'name'],
+            where: {
+                status: CONSTS.STATUS.ACTIVE,
+                id: competition_id,
+                activity_id, project_id
+            }
+        }),
+        CompetitionGroup.findAll({
+            attributes: ['id', 'name', 'interval'],
+            where: {
+                status: CONSTS.STATUS.ACTIVE,
+                competition_id,
+                activity_id, project_id,
+                id: group_ids
+            }
+        }),
+        Referee.findOne({
+            attributes: ['id', 'name', 'avatar'],
+            where: {
+                status: CONSTS.STATUS.ACTIVE,
+                id: referee_id
+            }
+        })
+    ])
+
+    if(!activity) {
+        return ctx.body = {
+            success: false,
+            message: '活动不存在'
+        }
+    }
+    if(!project) {
+        return ctx.body = {
+            success: false,
+            message: '项目不存在'
+        }
+    }
+    if(!competition) {
+        return ctx.body = {
+            success: false,
+            message: '赛制不存在'
+        }
+    }
+    if(!groups || !groups.length || groups.length !== group_ids.length) {
+        return ctx.body = {
+            success: false,
+            message: '赛制分组id不合法'
+        }
+    }
+    if(!referee) {
+        return ctx.body = {
+            success: false,
+            message: '裁判不存在'
+        }
+    }
+
     let admin_user_id = ctx.admin_user_id
     const algorithm = 'sha256'
     const salt = randomstring.generate(32)
     const _password  = signPassword(algorithm,salt,password)
-    let group_ids = groups.map((g) => g.id)
 
-
-
-    await Sequelize.transaction((t) => {
+    await sequelize.transaction((t) => {
         return RefereeAccount.create({
-            username, referee_id, activity_id, project_id,
+            username, referee_id,
+            avatar: referee.avatar,
+            activity_id, project_id,competition_id,
             password: _password,
             algorithm, salt,
             status: CONSTS.STATUS.ACTIVE,
             created_at: new Date(),
             create_userid: admin_user_id
-        }, { transaction: t }).then((referee) => {
-            let referee_account_id = referee.get('id')
-
+        }, { transaction: t }).then((re) => {
+            let referee_account_id = re.get('id')
+            let mappings = groups.map((g) => {
+                return {
+                    referee_account_id,
+                    referee_id: referee.id,
+                    referee_name: referee.name,
+                    activity_id, project_id, competition_id,
+                    group_id: g.id,
+                    group_name: g.name,
+                    status: CONSTS.STATUS.ACTIVE,
+                    created_at: new Date(),
+                    create_userid: admin_user_id
+                }
+            })
+            return RefereeAccountMapping.bulkCreate(mappings)
         })
     })
 
@@ -102,6 +192,12 @@ exports.addRefereeAccount = async function (ctx, next) {
 
 exports.getRefereeAccount = async function (ctx, next) {
     let { activity_id } = ctx.query
+    if(!activity_id || isNaN(+activity_id)) {
+        return ctx.body = {
+            success: false,
+            message: '活动id错误'
+        }
+    }
 
     let [accounts, mappings] = await Promise.all([
         RefereeAccount.findAll({
@@ -164,23 +260,73 @@ exports.getRefereeAccount = async function (ctx, next) {
     }
 }
 
+exports.deleteRefereeAccountById = async function (ctx, next) {
+    let admin_user_id = ctx.admin_user_id
+    let referee_account_id = ctx.params.referee_account_id
+
+    await sequelize.transaction((t) => {
+        return Promise.all([
+            RefereeAccount.update({
+                status: CONSTS.STATUS.DELETED,
+                updated_at: new Date(),
+                update_userid: admin_user_id
+            }, {
+                where: {
+                    status: CONSTS.STATUS.ACTIVE,
+                    id: referee_account_id
+                }
+            }, {transaction: t}),
+            RefereeAccountMapping.update({
+                status: CONSTS.STATUS.DELETED,
+                updated_at: new Date(),
+                update_userid: admin_user_id
+            }, {
+                where: {
+                    status: CONSTS.STATUS.ACTIVE,
+                    referee_account_id
+                }
+            }, {transaction: t})
+        ])
+    })
+
+    return ctx.body = {
+        success: true
+    }
+}
+
 exports.getAllReferee = async function (ctx) {
     let { pageIndex, pageSize } = ctx.query
     pageIndex = isNaN(+pageIndex) ? 1 : +pageIndex
     pageSize = isNaN(+pageSize) ? 10 : +pageSize
     let offset = (pageIndex - 1) * pageSize
-    let referees = await Referee.findAll({
-        attributes: ['id', 'name', 'gender', 'avatar', 'country'],
-        where: {
-            status: CONSTS.STATUS.ACTIVE,
+    let [referees, count] = await Promise.all([
+        Referee.findAll({
+            attributes: ['id', 'name', 'gender', 'avatar', 'country'],
+            where: {
+                status: CONSTS.STATUS.ACTIVE
+            },
             limit: pageSize,
             offset
-        }
-    })
+        }),
+        Referee.findAll({
+            attributes: [
+                [Sequelize.fn('COUNT', Sequelize.col('id')), 'count']
+            ],
+            where: {
+                status: CONSTS.STATUS.ACTIVE
+            }
+        })
+    ])
 
+    count = count[0].dataValues.count
     return ctx.body = {
         success: true,
-        referees
+        referees,
+        paging: {
+            pageIndex, pageSize,
+            totalCount: count,
+            totalPage: Math.ceil(count / pageSize)
+        }
     }
 }
 

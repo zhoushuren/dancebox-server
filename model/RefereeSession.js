@@ -12,6 +12,9 @@ const referee_session = sequelize.define('referee_session', {
     referee_account_id: {
         type: Sequelize.INTEGER
     },
+    referee_account_name: {
+        type: Sequelize.STRING
+    },
     session_token: {
         type: Sequelize.STRING
     },

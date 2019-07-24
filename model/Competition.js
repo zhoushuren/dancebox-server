@@ -40,21 +40,29 @@ const competition = sequelize.define('competition', {
             defaultValue: null,
             field: "project_id"
         },
-        win_number: {
-            type: Sequelize.INTEGER(10),
+        project_name: {
+            type: Sequelize.STRING(255),
             allowNull: false,
             autoIncrement: false,
             primaryKey: false,
             defaultValue: null,
-            field: "win_number"
+            field: "project_name"
         },
-        referee_number: {
+        win_count: {
             type: Sequelize.INTEGER(10),
             allowNull: false,
             autoIncrement: false,
             primaryKey: false,
             defaultValue: null,
-            field: "referee_number"
+            field: "win_count"
+        },
+        referee_count: {
+            type: Sequelize.INTEGER(10),
+            allowNull: false,
+            autoIncrement: false,
+            primaryKey: false,
+            defaultValue: null,
+            field: "referee_count"
         },
         grade_template_id: {
             type: Sequelize.INTEGER(10),

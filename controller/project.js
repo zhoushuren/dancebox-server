@@ -64,6 +64,12 @@ exports.getProjectById = async function (ctx, next) {
             id: project_id
         }
     })
+    if(!project) {
+        return ctx.body = {
+            success: false,
+            message: '项目不存在'
+        }
+    }
 
     try {
         project.dance = JSON.parse(project.dance)

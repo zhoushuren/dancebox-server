@@ -40,14 +40,6 @@ const competition_group = sequelize.define('competition_group', {
             defaultValue: null,
             field: "project_id"
         },
-        project_name: {
-            type: Sequelize.STRING(255),
-            allowNull: false,
-            autoIncrement: false,
-            primaryKey: false,
-            defaultValue: null,
-            field: "project_name"
-        },
         competition_id: {
             type: Sequelize.INTEGER(10),
             allowNull: false,
@@ -55,14 +47,6 @@ const competition_group = sequelize.define('competition_group', {
             primaryKey: false,
             defaultValue: null,
             field: "competition_id"
-        },
-        competition_name: {
-            type: Sequelize.STRING(255),
-            allowNull: false,
-            autoIncrement: false,
-            primaryKey: false,
-            defaultValue: null,
-            field: "competition_name"
         },
         interval: {
             type: Sequelize.STRING(255),

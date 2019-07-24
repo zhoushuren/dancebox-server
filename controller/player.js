@@ -10,7 +10,6 @@ const Project = require('../model/Project')
 const Competition = require('../model/Competition')
 const CompetitionGroup = require('../model/CompetitionGroup')
 const CONSTS = require('../config/constant')
-const Sequelize = require('sequelize')
 
 exports.addPlayer = async function (ctx, next) {
     let admin_user_id = ctx.admin_user_id
@@ -35,7 +34,7 @@ exports.addPlayer = async function (ctx, next) {
 
     let [activity, project, competition, groups] = await Promise.all([
         Activity.findOne({
-            attributes: ['id', 'name'],
+            attributes: ['id', ['title', 'name']],
             where: {
                 // status: CONSTS.STATUS.ACTIVE,
                 id: activity_id
@@ -94,7 +93,7 @@ exports.addPlayer = async function (ctx, next) {
     let player_group = groups.reduce((result, g) => {
         try {
             g.interval = JSON.parse(g.interval)
-            if(number < g.interval.max && number > g.interval.min) {
+            if(number <= g.interval.max && number >= g.interval.min) {
                 result = {
                     group_id: g.id,
                     group_name: g.name
@@ -137,11 +136,24 @@ exports.getPlayerById = async function (ctx, next) {
     let player_id = ctx.params.player_id
 
     let player = await Player.findOne({
+        attributes: [
+            'id', 'name', 'phone', 'number',
+            'activity_id', 'project_id', 'project_name',
+            'competition_id', 'competition_name',
+            'group_id', 'group_name'
+        ],
         where: {
             id: player_id,
             status: CONSTS.STATUS.ACTIVE
         }
     })
+
+    if(!player) {
+        return ctx.body = {
+            success: false,
+            message: '选手不存在'
+        }
+    }
 
     return ctx.body = {
         success: true,
@@ -173,7 +185,7 @@ exports.updatePlayerById = async function (ctx, next) {
 
     let [activity, project, competition, groups] = await Promise.all([
         Activity.findOne({
-            attributes: ['id', 'name'],
+            attributes: ['id', ['title', 'name']],
             where: {
                 // status: CONSTS.STATUS.ACTIVE,
                 id: activity_id
@@ -296,6 +308,12 @@ exports.deletePlayerById = async function (ctx, next) {
 
 exports.getAllPlayer = async function (ctx, next) {
     let { activity_id } = ctx.query
+    if(!activity_id || isNaN(+activity_id)) {
+        return ctx.body = {
+            success: false,
+            message: '参数错误'
+        }
+    }
     let players = await Player.findAll({
         attributes: [
             'id', 'name', 'phone', 'number',
@@ -319,8 +337,10 @@ exports.checkPlayerNumber = async function (ctx, next) {
     let { number, activity_id, competition_id, project_id } = ctx.request.body
 
     let player = await Player.findOne({
-        number, activity_id, competition_id, project_id,
-        status: CONSTS.STATUS.ACTIVE
+        where: {
+            number, activity_id, competition_id, project_id,
+            status: CONSTS.STATUS.ACTIVE
+        }
     })
 
     return ctx.body = {

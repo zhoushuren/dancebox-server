@@ -16,6 +16,14 @@ const player_grade = sequelize.define('player_grade', {
             primaryKey: true,
             field: "id"
         },
+        player_id: {
+            type: Sequelize.INTEGER(10),
+            allowNull: false,
+            autoIncrement: false,
+            primaryKey: false,
+            defaultValue: null,
+            field: "player_id"
+        },
         number: {
             type: Sequelize.STRING(255),
             allowNull: false,
@@ -40,6 +48,14 @@ const player_grade = sequelize.define('player_grade', {
             defaultValue: null,
             field: "competition_id"
         },
+        competition_name: {
+            type: Sequelize.STRING(255),
+            allowNull: false,
+            autoIncrement: false,
+            primaryKey: false,
+            defaultValue: null,
+            field: "competition_name"
+        },
         project_id: {
             type: Sequelize.INTEGER(10),
             allowNull: false,
@@ -47,6 +63,14 @@ const player_grade = sequelize.define('player_grade', {
             primaryKey: false,
             defaultValue: null,
             field: "project_id"
+        },
+        project_name: {
+            type: Sequelize.STRING(255),
+            allowNull: false,
+            autoIncrement: false,
+            primaryKey: false,
+            defaultValue: null,
+            field: "project_name"
         },
         group_id: {
             type: Sequelize.INTEGER(10),
@@ -56,6 +80,14 @@ const player_grade = sequelize.define('player_grade', {
             defaultValue: null,
             field: "group_id"
         },
+        group_name: {
+            type: Sequelize.STRING(255),
+            allowNull: false,
+            autoIncrement: false,
+            primaryKey: false,
+            defaultValue: null,
+            field: "group_name"
+        },
         criteria_id: {
             type: Sequelize.INTEGER(10),
             allowNull: false,
@@ -63,6 +95,38 @@ const player_grade = sequelize.define('player_grade', {
             primaryKey: false,
             defaultValue: null,
             field: "criteria_id"
+        },
+        criteria_name: {
+            type: Sequelize.STRING(255),
+            allowNull: false,
+            autoIncrement: false,
+            primaryKey: false,
+            defaultValue: null,
+            field: "criteria_name"
+        },
+        referee_account_id: {
+            type: Sequelize.INTEGER(10),
+            allowNull: false,
+            autoIncrement: false,
+            primaryKey: false,
+            defaultValue: null,
+            field: "referee_account_id"
+        },
+        referee_account_name: {
+            type: Sequelize.STRING(255),
+            allowNull: false,
+            autoIncrement: false,
+            primaryKey: false,
+            defaultValue: null,
+            field: "referee_account_name"
+        },
+        score: {
+            type: Sequelize.INTEGER(10),
+            allowNull: false,
+            autoIncrement: false,
+            primaryKey: false,
+            defaultValue: null,
+            field: "score"
         },
         weight: {
             type: Sequelize.INTEGER(10),

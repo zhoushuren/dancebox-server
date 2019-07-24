@@ -132,11 +132,12 @@ router.get('/test_message',community.testMessage)
 // 裁判客户端
 router.post('/referee/login', referee.login)
 router.get('/referee/competition', refereeAuth(competition.getCompetition))
-router.get('/referee/grade', refereeAuth(grade.saveGrade))
+router.post('/referee/grade', refereeAuth(grade.saveGrade))
 
 // 裁判后台
 router.post('/referee/account', authenticated(referee.addRefereeAccount))
 router.get('/referee/account', authenticated(referee.getRefereeAccount))
+router.delete('/referee/account/:referee_account_id', authenticated(referee.deleteRefereeAccountById))
 router.get('/referee', authenticated(referee.getAllReferee))
 router.post('/referee', authenticated(referee.addReferee))
 router.put('/referee/:referee_id', authenticated(referee.updateReferee))
@@ -153,6 +154,7 @@ router.get('/competition/group/:competition_id', authenticated(competition.getAl
 // 选手管理
 router.get('/player', authenticated(player.getAllPlayer))
 router.post('/player', authenticated(player.addPlayer))
+router.get('/player/grade', authenticated(grade.getAllGrades))
 router.get('/player/:player_id', authenticated(player.getPlayerById))
 router.put('/player/:player_id', authenticated(player.updatePlayerById))
 router.delete('/player/:player_id', authenticated(player.deletePlayerById))
@@ -169,7 +171,6 @@ router.delete('/project/:project_id', authenticated(project.deleteProjectById))
 router.post('/grade/template', authenticated(grade.addTemplate))
 router.get('/grade/template', authenticated(grade.getAllTemplate))
 router.delete('/grade/:template_id', authenticated(grade.deleteTemplateById))
-router.get('/grade', authenticated(grade.getAllGrades))
 // router.get('/grade/rank', authenticated(grade.getRankGrades))
 
 module.exports = {

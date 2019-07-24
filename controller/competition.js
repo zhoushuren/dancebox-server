@@ -15,11 +15,11 @@ const GradeTemplateCriteria = require('../model/GradeTemplateCriteria')
 const CONSTS = require('../config/constant')
 const moment = require('moment')
 const Sequelize = require('sequelize')
+const sequelize = require('../config.js')
 const Op = Sequelize.Op
 
 exports.getCompetition = async function (ctx, next) {
     let { activity_id } = ctx.token;
-
     let [ activity, competitions, referee_groups ] = await Promise.all([
         Activity.findOne({
             attributes: [
@@ -207,6 +207,12 @@ exports.getCompetition = async function (ctx, next) {
 
 exports.getAllCompetition = async function (ctx, next) {
     let { activity_id } = ctx.query
+    if (!activity_id) {
+        return ctx.body = {
+            success: false,
+            message: '参数错误'
+        }
+    }
 
     let competitions = await Competition.findAll({
         attributes: [
@@ -246,7 +252,7 @@ exports.addCompetition = async function (ctx, next) {
 
     let [activity, project, template, criterias] = await Promise.all([
         Activity.findOne({
-            attributes: ['id', 'name'],
+            attributes: ['id', ['title', 'name']],
             where: {
                 // status: CONSTS.STATUS.ACTIVE,
                 id: activity_id
@@ -297,10 +303,13 @@ exports.addCompetition = async function (ctx, next) {
     }
 
     let competition_id = -1;
-    await Sequelize.transaction((t) => {
+    await sequelize.transaction((t) => {
         let competiton = {
-            name, activity_id, project_id, win_count, referee_count,
+            name, activity_id,
+            project_id, project_name: project.name,
+            win_count, referee_count,
             grade_template_id: template_id,
+            grade_template_name: template.name,
             status: CONSTS.STATUS.ACTIVE,
             created_at: new Date(),
             create_userid: admin_user_id
@@ -342,7 +351,7 @@ exports.addCompetition = async function (ctx, next) {
 
 exports.updateCompetition = async function (ctx, next) {
     let admin_user_id = ctx.admin_user_id
-    let competition_id = ctx.params.competiton_id
+    let competition_id = ctx.params.competition_id
     let {
         activity_id, project_id, name,
         win_count, referee_count,
@@ -359,7 +368,7 @@ exports.updateCompetition = async function (ctx, next) {
 
     let [activity, project, template, criterias] = await Promise.all([
         Activity.findOne({
-            attributes: ['id', 'name'],
+            attributes: ['id', ['title', 'name']],
             where: {
                 // status: CONSTS.STATUS.ACTIVE,
                 id: activity_id
@@ -409,7 +418,7 @@ exports.updateCompetition = async function (ctx, next) {
         }
     }
 
-    await Sequelize.transaction((t) => {
+    await sequelize.transaction((t) => {
         let competiton = {
             name, activity_id, project_id, win_count, referee_count,
             grade_template_id: template_id,
@@ -465,7 +474,7 @@ exports.deleteCompetition = async function (ctx, next) {
         activity_id, competition_id
     } = ctx.params;
 
-    await Sequelize.transaction((t) => {
+    await sequelize.transaction((t) => {
         return Promise.all([
             Competition.update({
                 status: CONSTS.STATUS.DELETED,
@@ -498,7 +507,7 @@ exports.deleteCompetition = async function (ctx, next) {
 }
 
 exports.getAllCompetitionGroups = async function (ctx, next) {
-    let competition_id = ctx.params.competiton_id
+    let competition_id = ctx.params.competition_id
 
     let [competition, groups] = await Promise.all([
         Competition.findOne({
