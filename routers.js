@@ -133,6 +133,7 @@ router.get('/test_message',community.testMessage)
 router.post('/referee/login', referee.login)
 router.get('/referee/competition', refereeAuth(competition.getCompetition))
 router.post('/referee/grade', refereeAuth(grade.saveGrade))
+router.put('/referee', refereeAuth(referee.updateRefereeAccount))
 
 // 裁判后台
 router.post('/referee/account', authenticated(referee.addRefereeAccount))

@@ -27,11 +27,15 @@ exports.login = async function (ctx) {
         }
     }
 
-    let account = await RefereeAccount.findOne({where:{ username }})
+    let account = await RefereeAccount.findOne({
+        where:{
+            username,
+            status: CONSTS.STATUS.ACTIVE
+        }})
     if(!account){
         return ctx.body = {
             success: false,
-            error: '密码错误'
+            error: '用户不存在'
         }
     }
     let _password = signPassword(account.dataValues.algorithm, account.dataValues.salt,password)
@@ -184,6 +188,43 @@ exports.addRefereeAccount = async function (ctx, next) {
         })
     })
 
+
+    return ctx.body = {
+        success: true
+    }
+}
+
+exports.updateRefereeAccount = async function (ctx, next) {
+    let { offline } = ctx.request.body
+    let {referee_account_id } = ctx.token
+    if(offline!== 0 && offline !== 1) {
+        return ctx.body = {
+            success: false,
+            error: '参数错误'
+        }
+    }
+
+    let account = await RefereeAccount.findOne({
+        where:{
+            id: referee_account_id,
+            status: CONSTS.STATUS.ACTIVE
+        }
+    })
+    if(!account){
+        return ctx.body = {
+            success: false,
+            error: '用户不存在'
+        }
+    }
+
+    await RefereeAccount.update({
+        offline
+    }, {
+        where: {
+            id: referee_account_id,
+            status: CONSTS.STATUS.ACTIVE
+        }
+    })
 
     return ctx.body = {
         success: true
