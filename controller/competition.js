@@ -19,7 +19,7 @@ const sequelize = require('../config.js')
 const Op = Sequelize.Op
 
 exports.getCompetition = async function (ctx, next) {
-    let { activity_id } = ctx.token;
+    let { activity_id, referee_account_id } = ctx.token;
     let [ activity, competitions, referee_groups ] = await Promise.all([
         Activity.findOne({
             attributes: [
@@ -53,7 +53,7 @@ exports.getCompetition = async function (ctx, next) {
                 status: {
                     [Op.notIn]: [CONSTS.STATUS.DELETED, CONSTS.STATUS.STOPPED],
                 },
-                activity_id
+                activity_id, referee_account_id
             }
         })
     ])

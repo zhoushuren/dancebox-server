@@ -13,18 +13,17 @@ const CONSTS = require('../config/constant')
 
 function referee(cb) {
     return async (ctx, next) => {
-        // const cookie = ctx.req.headers.cookie
-        // const cookies = _cookie.parse(cookie)
-        // if(!cookies || !cookies['Referee-Token']) {
-        //     return ctx.body = {
-        //         success: false,
-        //         message: '没有权限'
-        //     }
-        // }
-        // if(process.env.NODE_ENV == 'boxt') {
-        //     await cb(ctx, next)
-        // } else {
-            let cookies = { "Referee-Token": "B5yOLGkbSxxHyjeez1azU4TbuRd2Tr06" }
+        const cookie = ctx.req.headers.cookie
+        const cookies = _cookie.parse(cookie)
+        if(!cookies || !cookies['Referee-Token']) {
+            return ctx.body = {
+                success: false,
+                message: '没有权限'
+            }
+        }
+        if(process.env.NODE_ENV == 'boxt') {
+            await cb(ctx, next)
+        } else {
             const result = await RefereeSession.findOne({
                 where:{session_token: cookies['Referee-Token']}
             })
@@ -55,7 +54,7 @@ function referee(cb) {
                 referee_id: referee_account.dataValues.referee_id,
             }
             await cb(ctx, next)
-        // }
+        }
     }
 }
 module.exports  = referee

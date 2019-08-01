@@ -62,6 +62,7 @@ exports.login = async function (ctx) {
                 session_token,
                 status: CONSTS.STATUS.ACTIVE,
                 referee_account_id: account.dataValues.id,
+                referee_account_name: account.dataValues.name,
                 created_at: new Date()
             })
         }
@@ -478,20 +479,27 @@ exports.deleteRefereeById = async function (ctx) {
         updated_at: new Date(),
         update_userid: admin_user_id
     }
-    await Promise.all([
-        Referee.update(delete_obj, {
-            where: {
-                status: CONSTS.STATUS.ACTIVE,
-                id: referee_id
-            }
-        }),
-        RefereeAccount.update(delete_obj, {
-            where: {
-                status: CONSTS.STATUS.ACTIVE,
-                referee_id
-            }
-        })
-    ])
+    // await Promise.all([
+    //     Referee.update(delete_obj, {
+    //         where: {
+    //             status: CONSTS.STATUS.ACTIVE,
+    //             id: referee_id
+    //         }
+    //     }),
+    //     RefereeAccount.update(delete_obj, {
+    //         where: {
+    //             status: CONSTS.STATUS.ACTIVE,
+    //             referee_id
+    //         }
+    //     })
+    // ])
+
+    await Referee.update(delete_obj, {
+        where: {
+            status: CONSTS.STATUS.ACTIVE,
+            id: referee_id
+        }
+    })
 
     return ctx.body = {
         success: true

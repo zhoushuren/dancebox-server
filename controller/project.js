@@ -43,11 +43,22 @@ exports.addProject = async function (ctx, next) {
 
 exports.getAllProject = async function (ctx, next) {
     let projects = await Project.findAll({
-        attributes: ['id', 'name'],
+        attributes: ['id', 'name', 'dance', 'unit_number'],
         where: {
             status: CONSTS.STATUS.ACTIVE
         }
     })
+
+    projects = projects.reduce((result, p) => {
+        try {
+            p.dance = JSON.parse(p.dance)
+            p.unit_number = JSON.parse(p.unit_number)
+            result.push(p)
+        } catch (e) {
+
+        }
+        return result;
+    }, [])
 
     return ctx.body = {
         success: true,

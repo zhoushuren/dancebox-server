@@ -143,7 +143,7 @@ router.get('/referee', authenticated(referee.getAllReferee))
 router.post('/referee', authenticated(referee.addReferee))
 router.put('/referee/:referee_id', authenticated(referee.updateReferee))
 router.get('/referee/:referee_id', authenticated(referee.getRefereeById))
-// router.delete('/referee/:referee_id', authenticated(referee.deleteRefereeById))
+router.delete('/referee/:referee_id', authenticated(referee.deleteRefereeById))
 
 // 赛制
 router.get('/competition', authenticated(competition.getAllCompetition))
