@@ -21,7 +21,7 @@ function admin(cb) {
                 ctx.admin_user_id = result.dataValues.admin_user_id
             }
             await cb(ctx, next)
-        // }
-    }
+        }
+    // }
 }
 module.exports  = admin

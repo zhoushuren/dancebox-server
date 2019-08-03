@@ -70,7 +70,7 @@ exports.login = async function (ctx) {
         return ctx.body = {
             success: true,
             session_token, username, offline,
-            avatar: account.avatar
+            avatar: (process.env.IMGURL || 'http://127.0.0.1:3008/api/') + account.avatar
         }
     }catch (e){
         console.error(e)
