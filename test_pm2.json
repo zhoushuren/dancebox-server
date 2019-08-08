@@ -23,7 +23,7 @@
       "DB_NAME": "dancebox-test",
       "DB_USER": "boxt",
       "DB_PASS": "DanceBox@2019",
-      "IMGURL": "http://106.15.95.150:3008/api/",
+      "IMGURL": "http://106.15.95.150:3008",
       "PORT": 3008
     },
     "env_dev": {

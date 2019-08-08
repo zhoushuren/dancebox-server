@@ -25,7 +25,8 @@
     "ws": "^6.2.1"
   },
   "devDependencies": {
-    "nodemon": "^1.18.10"
+    "nodemon": "^1.18.10",
+    "xlsx": "^0.15.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
