@@ -108,7 +108,6 @@ async function createRefereeAccount(accounts, refereeMappings, proNames, comName
         a.referee_id = refereesObj[a.reName].id;
         a.avatar = refereesObj[a.reName].avatar;
         a.project_id = prosObj[a.proName];
-        a.competition_id = comsObj[a.comName];
         return a;
     });
     await RefereeAccount.bulkCreate(createAccounts);
@@ -352,7 +351,8 @@ async function readRefereeAccountSheet(refereeAccountData) {
     let proNames = [];
     let comNames = [];
     let refereeMappings = [];
-    let accounts = (refereeAccountData || []).map((lineObj) => {
+    let dupObj = {};
+    let accounts = (refereeAccountData || []).reduce((result, lineObj) => {
         const _password  = signPassword(algorithm, salt, lineObj['密码']);
         let refereeName = lineObj['裁判库名称'];
         let reAcName = lineObj['用户名'];
@@ -360,6 +360,10 @@ async function readRefereeAccountSheet(refereeAccountData) {
         reAcNames.push(reAcName);
         proNames.push(lineObj['项目名称']);
         comNames.push(lineObj['赛制名称']);
+        let accountDup = false;
+        if(dupObj[reAcName + refereeName + lineObj['活动名称']]) {
+            accountDup = true;
+        } else dupObj[reAcName + refereeName + lineObj['活动名称']] = true;
         for(let i = 1; i <= 5; i ++) {
             let gName = lineObj[`分组${i} 名称`];
             if(gName) {
@@ -377,18 +381,21 @@ async function readRefereeAccountSheet(refereeAccountData) {
             }
         }
 
-        return {
-            username: reAcName,
-            password: _password, algorithm, salt,
-            activity_id: lineObj['活动ID'],
-            reName: refereeName,
-            proName: lineObj['项目名称'],
-            comName: lineObj['赛制名称'],
-            status: CONSTS.STATUS.ACTIVE,
-            created_at: new Date(),
-            create_userid: 0
+        if(!accountDup) {
+            result.push({
+                username: reAcName,
+                password: _password, algorithm, salt,
+                activity_id: lineObj['活动ID'],
+                reName: refereeName,
+                proName: lineObj['项目名称'],
+                status: CONSTS.STATUS.ACTIVE,
+                created_at: new Date(),
+                create_userid: 0
+            });
         }
-    });
+        return result;
+    }, []);
+
     await createRefereeAccount(accounts, refereeMappings, proNames, comNames, refereeNames, reAcNames);
 }
 

@@ -57,12 +57,13 @@ exports.login = async function (ctx) {
                 referee_account_id: account.dataValues.id
             }
         })
+
         if(!result[0]) {
             await RefereeSession.create({
                 session_token,
                 status: CONSTS.STATUS.ACTIVE,
                 referee_account_id: account.dataValues.id,
-                referee_account_name: account.dataValues.name,
+                referee_account_name: account.dataValues.username,
                 created_at: new Date()
             })
         }
@@ -81,9 +82,9 @@ exports.login = async function (ctx) {
 }
 
 exports.addRefereeAccount = async function (ctx, next) {
-    let { username, password, referee_id, activity_id, project_id, competition_id, group_ids } = ctx.request.body
+    let { username, password, referee_id, activity_id, project_id, group_ids } = ctx.request.body
 
-    let [activity, project, competition, groups, referee] = await Promise.all([
+    let [activity, project, groups, referee] = await Promise.all([
         Activity.findOne({
             attributes: ['id', ['title', 'name']],
             where: {
@@ -98,19 +99,10 @@ exports.addRefereeAccount = async function (ctx, next) {
                 id: project_id
             }
         }),
-        Competition.findOne({
-            attributes: ['id', 'name'],
-            where: {
-                status: CONSTS.STATUS.ACTIVE,
-                id: competition_id,
-                activity_id, project_id
-            }
-        }),
         CompetitionGroup.findAll({
-            attributes: ['id', 'name', 'interval'],
+            attributes: ['id', 'name', 'interval', 'competition_id'],
             where: {
                 status: CONSTS.STATUS.ACTIVE,
-                competition_id,
                 activity_id, project_id,
                 id: group_ids
             }
@@ -136,12 +128,7 @@ exports.addRefereeAccount = async function (ctx, next) {
             message: '项目不存在'
         }
     }
-    if(!competition) {
-        return ctx.body = {
-            success: false,
-            message: '赛制不存在'
-        }
-    }
+
     if(!groups || !groups.length || groups.length !== group_ids.length) {
         return ctx.body = {
             success: false,
@@ -164,7 +151,7 @@ exports.addRefereeAccount = async function (ctx, next) {
         return RefereeAccount.create({
             username, referee_id,
             avatar: referee.avatar,
-            activity_id, project_id,competition_id,
+            activity_id, project_id,
             password: _password,
             algorithm, salt,
             status: CONSTS.STATUS.ACTIVE,
@@ -177,7 +164,8 @@ exports.addRefereeAccount = async function (ctx, next) {
                     referee_account_id,
                     referee_id: referee.id,
                     referee_name: referee.name,
-                    activity_id, project_id, competition_id,
+                    activity_id, project_id,
+                    competition_id: g.competition_id,
                     group_id: g.id,
                     group_name: g.name,
                     status: CONSTS.STATUS.ACTIVE,

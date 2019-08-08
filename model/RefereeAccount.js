@@ -72,14 +72,6 @@ const referee_account = sequelize.define('referee_account', {
             defaultValue: null,
             field: "activity_id"
         },
-        competition_id: {
-            type: Sequelize.INTEGER(10),
-            allowNull: false,
-            autoIncrement: false,
-            primaryKey: false,
-            defaultValue: null,
-            field: "competition_id"
-        },
         status: {
             type: Sequelize.INTEGER(4),
             allowNull: false,
