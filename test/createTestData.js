@@ -85,7 +85,7 @@ async function createRefereeAccount(accounts, refereeMappings, proNames, comName
         })
     ]);
 
-    const [ prosObj, comsObj, refereesObj ] = await Promise.all([
+    const [ prosObj, comsObj, refereesObj, comGroups ] = await Promise.all([
         getNameObj(pros),
         getNameObj(coms),
         referees.reduce((result, r) => {
@@ -94,7 +94,14 @@ async function createRefereeAccount(accounts, refereeMappings, proNames, comName
                 avatar: r.avatar
             };
             return result;
-        }, {})
+        }, {}),
+        CompetitionGroup.findAll({
+            attributes: ['id', 'name', 'competition_id'],
+            where: {
+                status: CONSTS.STATUS.ACTIVE,
+                competition_id: coms.map((c) => c.id)
+            }
+        }),
     ]);
 
     let createAccounts = accounts.map((a) => {
@@ -106,20 +113,28 @@ async function createRefereeAccount(accounts, refereeMappings, proNames, comName
     });
     await RefereeAccount.bulkCreate(createAccounts);
     if(refereeMappings && refereeMappings.length) {
-        let reAcs = RefereeAccount.findAll({
+        let reAcs = await RefereeAccount.findAll({
             attributes: ['id', 'name'],
             where: {
                 status: CONSTS.STATUS.ACTIVE,
                 name: reAcNames
             }
         });
-        let reAcsObj = await getNameObj(reAcs);
+        let comGroupsObj = comGroups.reduce((result, g) => {
+            result[g.competition_id + '_' + g.name] = g.id;
+            return result;
+        }, {});
 
+        let reAcsObj = reAcs.reduce((result, a) => {
+            result[a.dataValues.name] = a.dataValues.id;
+            return result;
+        }, {});
         let createMappings = refereeMappings.map((r) => {
             r.referee_account_id = reAcsObj[r.reAcName];
             r.referee_id = refereesObj[r.referee_name].id;
             r.project_id = prosObj[r.proName]
             r.competition_id = comsObj[r.comName];
+            r.group_id = comGroupsObj[r.competition_id + '_' + r.group_name];
             return r;
         });
         await RefereeMapping.bulkCreate(createMappings);
@@ -428,7 +443,6 @@ async function readPlayerSheet(playerData) {
 
         if(groups && groups.length) {
             groups.forEach((g) => {
-                console.log('=======', number, g.interval.max, g.interval.min)
                 if(number <= g.interval.max && number >= g.interval.min) {
                     group_id = g.id;
                     group_name = g.name;
