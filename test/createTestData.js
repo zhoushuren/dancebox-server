@@ -453,8 +453,8 @@ async function readPlayerSheet(playerData) {
                 if(number <= g.interval.max && number >= g.interval.min) {
                     group_id = g.id;
                     group_name = g.name;
-                    if(number < 10) number = `00${Number(number)}`;
-                    else if(number < 100) number = `0${Number(number)}`;
+                    // if(number < 10) number = `00${Number(number)}`;
+                    // else if(number < 100) number = `0${Number(number)}`;
                 }
             });
         }
