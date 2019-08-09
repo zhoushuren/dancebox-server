@@ -15,12 +15,12 @@ const Player = require('../model/Player')
 const Activity = require('../model/Activity')
 const CONSTS = require('../config/constant')
 const sequelize = require('../config.js')
+const Sequelize = require('sequelize')
 
 exports.saveGrade = async function (ctx, next) {
     let { activity_id, group_id, competition_id, score } = ctx.request.body
     let {referee_account_id, referee_account_name} = ctx.token
-    // let referee_account_id =1
-    // let referee_account_name = 'boxt'
+
     if(activity_id !== ctx.token.activity_id) {
         return ctx.body = {
             success: false,
@@ -49,7 +49,7 @@ exports.saveGrade = async function (ctx, next) {
             }
         }),
         Competition.findOne({
-            attributes: ['id', 'name', 'grade_template_id', 'project_id', 'project_name'],
+            attributes: ['id', 'name', 'grade_template_id', 'project_id', 'project_name', 'referee_count'],
             where: {
                 status: CONSTS.STATUS.ACTIVE,
                 activity_id,
@@ -206,6 +206,28 @@ exports.saveGrade = async function (ctx, next) {
                         id: referee_group.id
                     }
                 }, {transaction: t})
+            }).then(async () => {
+                let refereeGradeCount = await PlayerGrade.findAll({
+                    attributes: [
+                        [Sequelize.fn('COUNT', Sequelize.col('referee_account_id')), 'count']
+                    ],
+                    where: {
+                        status: CONSTS.STATUS.ACTIVE,
+                        activity_id, competition_id
+                    },
+                    group: 'referee_account_id'
+                });
+                
+                if(competition.referee_count == 1 ||
+                    refereeGradeCount[0].dataValues.count == competition.referee_count ) {
+                    return RefereeMapping.update({
+                        status: CONSTS.STATUS.COMPLETED
+                    }, {
+                        where: {
+                            activity_id, competition_id
+                        }
+                    }, {transaction: t})
+                }
             })
     })
 

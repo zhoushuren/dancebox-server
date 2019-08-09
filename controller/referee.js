@@ -31,7 +31,7 @@ exports.login = async function (ctx) {
         where:{
             username,
             status: CONSTS.STATUS.ACTIVE
-        }})
+        }});
     if(!account){
         return ctx.body = {
             success: false,
@@ -67,10 +67,18 @@ exports.login = async function (ctx) {
                 created_at: new Date()
             })
         }
-        let offline = account.offline ? true : false
+        let mapping = await RefereeAccountMapping.findOne({
+            attributes: ['referee_name'],
+            where: {
+                status: CONSTS.STATUS.ACTIVE,
+                referee_account_id: account.id
+            }
+        })
+        let offline = account.offline ? true : false;
         return ctx.body = {
             success: true,
-            session_token, username, offline,
+            session_token, offline,
+            username: mapping ? mapping.referee_name : username,
             avatar: (process.env.IMGURL || 'http://127.0.0.1:3008/api/') + account.avatar
         }
     }catch (e){
