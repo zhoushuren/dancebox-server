@@ -24,10 +24,12 @@ function parseRemark(remark) {
 
 }
 
-async function getList(where) {
+async function getList(where,{pageSize, pageNo}) {
     let list = await Activity.findAll({
         where,
-        order: [['start_time', 'asc']]
+        order: [['start_time', 'asc']],
+        offset: pageNo,
+        limit: pageSize || 10
     })
 
     return {
@@ -59,10 +61,10 @@ exports.list = async function(ctx, next) {
 
 //解决数据库雪崩
 class ActivityService {
-  getActivityList(obj) {
+  getActivityList(obj, {pageSize, pageNo}) {
     if (this.requesting === undefined) {
       let self = this;
-      this.requesting =  getList({status: 0,...obj}).finally(()=>{
+      this.requesting =  getList({status: 0,...obj},{pageSize, pageNo}).finally(()=>{
         delete self.requesting;
       })
     }
@@ -73,7 +75,7 @@ class ActivityService {
 let svs = new ActivityService()
 //小程序
 exports.activity_list = async function(ctx, next) {
-    let {page,city,dance} = ctx.query
+    let {pageNo,pageSize, city,dance} = ctx.query
     // let result = await getList({status: 0})
     // ctx.body = result
   let where = {
@@ -89,7 +91,7 @@ exports.activity_list = async function(ctx, next) {
         where.dance = {[Op.substring]: dance}
     }
 
-    let result = await svs.getActivityList(where)
+    let result = await svs.getActivityList(where,{pageNo, pageSize})
     ctx.body = result
 }
 
