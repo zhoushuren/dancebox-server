@@ -78,6 +78,7 @@ exports.activity_list = async function(ctx, next) {
     let {pageNo,pageSize, city,dance} = ctx.query
     // let result = await getList({status: 0})
     // ctx.body = result
+    pageSize = pageSize || 20
   let where = {
     start_time: {[Op.gte]: new Date()}
   }
