@@ -24,12 +24,13 @@ function parseRemark(remark) {
 
 }
 
-async function getList(where,{pageSize, pageNo}) {
+async function getList(where,{pageSize=10, pageNo=1}) {
+    const offset = (pageNo - 1) * pageSize;
     let list = await Activity.findAll({
         where,
         order: [['start_time', 'asc']],
-        offset: pageNo,
-        limit: pageSize || 10
+        offset: offset,
+        limit: pageSize
     })
 
     return {
