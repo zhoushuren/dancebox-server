@@ -54,8 +54,9 @@ async function getList(where,{pageSize, pageNo}) {
 }
 //管理后台
 exports.list = async function(ctx, next) {
-    // let {status} = ctx.query
-    let result = await getList({},{})
+    let {status} = ctx.query;
+    status = status || 0;
+    let result = await getList({status},ctx.query)
     ctx.body = result
 }
 
