@@ -28,9 +28,9 @@ async function getList(where,{pageSize=10, pageNo=1}) {
     const offset = (pageNo - 1) * pageSize;
     let list = await Activity.findAll({
         where,
-        order: [['start_time', 'asc']],
+        order: [['id', 'desc']],
         offset: offset,
-        limit: pageSize
+        limit: +pageSize
     })
 
     return {
@@ -63,7 +63,7 @@ exports.list = async function(ctx, next) {
 
 //解决数据库雪崩
 class ActivityService {
-  getActivityList(obj, {pageSize, pageNo}) {
+  getActivityList(obj, {pageSize=10, pageNo=1}) {
     if (this.requesting === undefined) {
       let self = this;
       this.requesting =  getList({status: 0,...obj},{pageSize, pageNo}).finally(()=>{
