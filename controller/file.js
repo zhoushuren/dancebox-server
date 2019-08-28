@@ -18,6 +18,12 @@ exports.img = async function(ctx, next) {
     }
 }
 
+exports.getPlayerFilePath = async function(ctx, next) {
+    const targetFile = path.join(__dirname,'../files/player');
+    let obj = await formParseFile(ctx.req, targetFile)
+    return obj.filePath;
+}
+
 function formParse(req) {
     return new Promise((resolve, reject) => {
         const form = new formidable.IncomingForm()
@@ -38,6 +44,35 @@ function formParse(req) {
                         msg: '图片上传并改名成功',
                         file_name: filePath + fileName,
                         img_url: imgHost + filePath + fileName
+                    })
+                })
+
+            }
+        })
+    })
+}
+
+function formParseFile(req, targetFile) {
+    if (!fs.existsSync(targetFile)) {
+        fs.mkdirSync(targetFile, { recursive: true });
+    }
+    return new Promise((resolve, reject) => {
+        const form = new formidable.IncomingForm()
+        form.uploadDir = targetFile;
+        form.parse(req, function(err, fields, files) {
+            if(err) {
+                reject(err)
+            } else {
+                const oldpath = files.file.path;
+
+                const fileExtension = files.file.name.split('.').pop().toLowerCase();
+                const fileName = randomstring.generate(16) + '.' + fileExtension
+                const newpath = targetFile + '/' + fileName
+                fs.rename(oldpath,newpath,(err)=>{
+                    if(err) throw err;
+                    resolve({
+                        msg: '文件上传成功',
+                        filePath: newpath
                     })
                 })
 

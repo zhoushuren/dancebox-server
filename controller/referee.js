@@ -38,6 +38,20 @@ exports.login = async function (ctx) {
             error: '用户不存在'
         }
     }
+
+    let activity = await Activity.findOne({
+        where: {
+            id: account.activity_id,
+            is_judge: 1
+        }
+    });
+    if(!activity) {
+        return ctx.body = {
+            success: false,
+            error: '活动不存在或未打开裁判系统'
+        }
+    }
+
     let _password = signPassword(account.dataValues.algorithm, account.dataValues.salt,password)
 
     if( _password !== account.dataValues.password){

@@ -268,8 +268,17 @@ exports.create = async function (ctx, next) {
 }
 
 exports.setStatus = async function(ctx,next) {
-    let { id, status} = ctx.request.body
-    if(id === undefined || status === undefined || status !==1 || status !== 0 || status !== 2) {
+    let { id, status, isJudge } = ctx.request.body;
+    let updateObj = null;
+    if(+status >= 0 && status !== undefined) {
+        updateObj = { status };
+    }
+
+    if(+isJudge >= 0 && isJudge !== undefined) {
+        updateObj = { is_judge: isJudge };
+    }
+
+    if(id === undefined || !updateObj || (status !== undefined && status !== 0 && status !== 1 && status !== 2)) {
         ctx.body = {
             success: false,
             message: '非法请求'
@@ -278,7 +287,7 @@ exports.setStatus = async function(ctx,next) {
     let activity  = await Activity.findByPk(id)
     // console.log(activity)
     if(activity) {
-        await activity.update({status})
+        await activity.update(updateObj)
     }
 
     ctx.body = {

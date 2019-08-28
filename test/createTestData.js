@@ -535,12 +535,10 @@ async function start() {
 
 /*
  * 运行时指定环境变量
- * Windows: set DB_HOST=rm-uf66kc7s62ubby3800o.mysql.rds.aliyuncs.com DB_NAME=dancebox-test DB_USER=boxt
- * DB_PASS=DanceBox@2019 && node createTestData.js ./赛制数据导入模版.xlsx
+ * Windows: set DB_HOST=rm-uf66kc7s62ubby3800o.mysql.rds.aliyuncs.com DB_NAME=dancebox-test DB_USER=boxt DB_PASS=DanceBox@2019 && node createTestData.js ./赛制数据导入模版.xlsx
  *
  * Linux:
- * export DB_HOST=rm-uf66kc7s62ubby3800o.mysql.rds.aliyuncs.com DB_NAME=dancebox-test DB_USER=boxt
- * DB_PASS=DanceBox@2019 && node createTestData.js ./赛制数据导入模版.xlsx
+ * export DB_HOST=rm-uf66kc7s62ubby3800o.mysql.rds.aliyuncs.com DB_NAME=dancebox-test DB_USER=boxt DB_PASS=DanceBox@2019 && node createTestData.js ./赛制数据导入模版.xlsx
  * */
 start();
 

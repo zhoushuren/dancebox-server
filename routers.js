@@ -155,6 +155,7 @@ router.get('/competition/group/:competition_id', authenticated(competition.getAl
 // 选手管理
 router.get('/player', authenticated(player.getAllPlayer))
 router.post('/player', authenticated(player.addPlayer))
+router.post('/player/upload', authenticated(player.uploadPlayers))
 router.get('/player/grade', authenticated(grade.getAllGrades))
 router.get('/player/:player_id', authenticated(player.getPlayerById))
 router.put('/player/:player_id', authenticated(player.updatePlayerById))

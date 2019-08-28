@@ -34,6 +34,9 @@ const activity = sequelize.define('activity', {
         },
         url:  {
           type: Sequelize.STRING
+        },
+        is_judge: {
+            type: Sequelize.INTEGER
         }
     },
     {
