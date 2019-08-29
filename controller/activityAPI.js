@@ -24,11 +24,11 @@ function parseRemark(remark) {
 
 }
 
-async function getList(where,{pageSize=10, pageNo=1}) {
+async function getList(where, orderBy, {pageSize=10, pageNo=1}) {
     const offset = (pageNo - 1) * pageSize;
     let list = await Activity.findAll({
         where,
-        order: [['id', 'desc']],
+        order: [orderBy],
         offset: offset,
         limit: +pageSize
     })
@@ -57,16 +57,16 @@ async function getList(where,{pageSize=10, pageNo=1}) {
 exports.list = async function(ctx, next) {
     let {status} = ctx.query;
     let where = +status >=0 ? { status } : {};
-    let result = await getList(where,ctx.query)
+    let result = await getList(where, ['id', 'desc'],ctx.query)
     ctx.body = result
 }
 
 //解决数据库雪崩
 class ActivityService {
-  getActivityList(obj, {pageSize=10, pageNo=1}) {
+  getActivityList(obj, orderBy, {pageSize=10, pageNo=1}) {
     if (this.requesting === undefined) {
       let self = this;
-      this.requesting =  getList({status: 0,...obj},{pageSize, pageNo}).finally(()=>{
+      this.requesting =  getList({status: 0,...obj}, orderBy, {pageSize, pageNo}).finally(()=>{
         delete self.requesting;
       })
     }
@@ -93,7 +93,7 @@ exports.activity_list = async function(ctx, next) {
         where.dance = {[Op.substring]: dance}
     }
 
-    let result = await svs.getActivityList(where,{pageNo, pageSize})
+    let result = await svs.getActivityList(where, ['start_time', 'desc'],{pageNo, pageSize})
     ctx.body = result
 }
 
