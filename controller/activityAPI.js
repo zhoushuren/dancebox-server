@@ -93,7 +93,7 @@ exports.activity_list = async function(ctx, next) {
         where.dance = {[Op.substring]: dance}
     }
 
-    let result = await svs.getActivityList(where, ['start_time', 'desc'],{pageNo, pageSize})
+    let result = await svs.getActivityList(where, ['start_time', 'asc'],{pageNo, pageSize})
     ctx.body = result
 }
 
