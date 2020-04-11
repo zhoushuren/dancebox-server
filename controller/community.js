@@ -235,7 +235,7 @@ exports.getPost = async function(ctx) {
     }
   }
 
-  data.increment('view_count')
+  // data.increment('view_count') //去掉了点击次数统计，因为会导致点击置顶
 
   let format_time = formarTime(data.created_at)
   ctx.body = {
